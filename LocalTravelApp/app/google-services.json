@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "642301641991",
+    "firebase_url": "https://itineraries-1495475402454.firebaseio.com",
+    "project_id": "itineraries-1495475402454",
+    "storage_bucket": "itineraries-1495475402454.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:642301641991:android:1444f2295d0866e0",
+        "android_client_info": {
+          "package_name": "edu.uw.lbaker7.localtravelapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "642301641991-cs3jcmvganmnp70jgs89d75m2e2v6khl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrPztqZGAPy-KHJRvD0wUiXpgLW0NWqF4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
