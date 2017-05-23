@@ -1,6 +1,5 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -12,7 +11,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import edu.uw.lbaker7.localtravelapp.R;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
 
