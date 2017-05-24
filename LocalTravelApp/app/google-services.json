@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "642301641991-p85mnop45bq0ippq912lbrbq5tfpskkt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.uw.lbaker7.localtravelapp",
+            "certificate_hash": "345e19cbd00e84c5585f511778a82484abfebf13"
+          }
+        },
+        {
           "client_id": "642301641991-6rja9p6vbrc3ectqd9tbss2akcgmkbpq.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
