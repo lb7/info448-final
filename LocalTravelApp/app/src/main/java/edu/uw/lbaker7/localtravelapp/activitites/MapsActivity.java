@@ -93,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                
+
             }
         });
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -222,6 +222,7 @@ protected void onStart() {
                     priceLevel =  resultItemObj.getInt("price_level");
                 }
                 PlaceItem place = new PlaceItem(placeName, ltlg , icon, address, id, rating, priceLevel);
+                places.add(place);
                 Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
                 marker.setTag(place);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
