@@ -1,8 +1,7 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -10,12 +9,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.ProviderQueryResult;
 
-import edu.uw.lbaker7.localtravelapp.FirebaseController;
 import edu.uw.lbaker7.localtravelapp.R;
 
 public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
@@ -33,19 +27,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback {
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        FirebaseController controller = FirebaseController.getInstance();
-        FirebaseAuth auth = controller.getAuth();
-
-        auth.fetchProvidersForEmail("luke.baker7@gmail.com").addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
-            @Override
-            public void onComplete(@NonNull Task<ProviderQueryResult> task) {
-                if (task.isSuccessful()) {
-                    Log.i(TAG, "Email is available");
-                } else {
-                    Log.i(TAG, "Email is not available");
-                }
-            }
-        });
+        startActivity(new Intent(this, LoginActivity.class));
     }
 
 
