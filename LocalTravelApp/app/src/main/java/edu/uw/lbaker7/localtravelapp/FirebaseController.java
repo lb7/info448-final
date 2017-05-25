@@ -2,7 +2,6 @@ package edu.uw.lbaker7.localtravelapp;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -10,13 +9,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.ProviderQueryResult;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.List;
 
 public class FirebaseController {
 
@@ -101,24 +96,11 @@ public class FirebaseController {
         }
     }
 
-    public void getItineraries(final List<ItineraryListItem> itineraries) {
-        FirebaseUser user = mAuth.getCurrentUser();
+    public void getItineraries(final ChildEventListener listener) {
+        final FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            mUsersReference.child(user.getUid()).child("itineraries").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
-                    for (DataSnapshot child : children) {
-                        //mItinerariesReference.child(child.getKey()).addListenerForSingleValueEvent(listener);
-                        itineraries.add(child.getValue(ItineraryListItem.class));
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.w(TAG, databaseError.toException());
-                }
-            });
+            mItinerariesReference.orderByChild("owner").equalTo(user.getUid())
+                    .addChildEventListener(listener);
         }
     }
 }

@@ -11,12 +11,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 
 import edu.uw.lbaker7.localtravelapp.FirebaseController;
-import edu.uw.lbaker7.localtravelapp.ItineraryListItem;
 import edu.uw.lbaker7.localtravelapp.R;
 
 public class LoginActivity extends AppCompatActivity {
@@ -41,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         Log.i(TAG, task.getResult().getUser().getEmail());
-                        controller.addItinerary(new ItineraryListItem("Seattle Day Trip", "1/1/11"), null);
+                        //controller.addItinerary(new ItineraryListItem("Seattle Day Trip", "1/1/11"), null);
                     } else {
                         Log.w(TAG, task.getException());
                     }
@@ -55,10 +54,25 @@ public class LoginActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                controller.getItineraries(new ValueEventListener() {
+                controller.getItineraries(new ChildEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Log.i(TAG, dataSnapshot.child("itineraryName").getValue().toString());
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Log.v(TAG, dataSnapshot.toString());
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                        Log.v(TAG, dataSnapshot.toString());
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
                     }
 
                     @Override
