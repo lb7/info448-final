@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,9 @@ public class ItineraryListFragment extends Fragment {
     private static final String TAG = "ItineraryListFragemnt";
 
     private OnItinerarySelectedListener itinerarySelectedCallback;
+
+    private List<ItineraryListItem> data;
+    private ItineraryAdapter adapter;
 
     public interface OnItinerarySelectedListener {
         void onItinerarySelected(ItineraryListItem item);
@@ -64,22 +68,26 @@ public class ItineraryListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        Log.v(TAG, "On create view");
+
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_itinerary_list, container, false);
         ListView itineraryListView = (ListView)rootView.findViewById(R.id.itinerary_list);
-        final List<ItineraryListItem> data = new ArrayList<>();
+        data = new ArrayList<>();
 
         //dummy data for testing
         ItineraryListItem item1 = new ItineraryListItem("Seattle", "02 May 2017");
         ItineraryListItem item2 = new ItineraryListItem("Tacoma", "05 May 2017");
         ItineraryListItem item3 = new ItineraryListItem("Bellevue", "23 May 2017");
         ItineraryListItem item4 = new ItineraryListItem("Olympia", "22 May 2017");
+        Log.v(TAG, item1.itineraryName);
+        Log.v(TAG, item1.dateCreated);
         data.add(item1);
         data.add(item2);
         data.add(item3);
         data.add(item4);
 
-        ItineraryAdapter adapter = new ItineraryAdapter(getActivity(), data);
+        adapter = new ItineraryAdapter(getActivity(), data);
         itineraryListView.setAdapter(adapter);
 
         itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -87,12 +95,15 @@ public class ItineraryListFragment extends Fragment {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
                 final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
-                ImageButton btnDelete = (ImageButton) view.findViewById(R.id.btn_delete_itinerary);
+                final ImageButton btnDelete = (ImageButton) view.findViewById(R.id.btn_delete_itinerary);
                 btnDelete.setVisibility(View.VISIBLE);
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         data.remove(listItem);
+                        adapter.notifyDataSetChanged();
+                        btnDelete.setVisibility(View.INVISIBLE);
+
                     }
                 });
                 return true;
