@@ -16,6 +16,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 
 import edu.uw.lbaker7.localtravelapp.FirebaseController;
+import edu.uw.lbaker7.localtravelapp.ItineraryListItem;
 import edu.uw.lbaker7.localtravelapp.R;
 
 public class LoginActivity extends AppCompatActivity {
@@ -57,12 +58,14 @@ public class LoginActivity extends AppCompatActivity {
                 controller.getItineraries(new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Log.v(TAG, dataSnapshot.toString());
+                        ItineraryListItem itinerary = dataSnapshot.getValue(ItineraryListItem.class);
+                        dataSnapshot.child("dateCreated").getValue();
+                        Log.v(TAG, itinerary.getPlaces().toString());
                     }
 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                        Log.v(TAG, dataSnapshot.toString());
+
                     }
 
                     @Override
@@ -82,6 +85,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
             }
         });
+
     }
 
     //private void makeItineraries

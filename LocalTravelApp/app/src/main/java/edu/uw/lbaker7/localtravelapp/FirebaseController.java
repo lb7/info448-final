@@ -13,7 +13,7 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class FirebaseController {
+public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
     private static final String TAG = "FirebaseController";
 
@@ -23,6 +23,7 @@ public class FirebaseController {
     private FirebaseDatabase mDatabase;
     private DatabaseReference mItinerariesReference;
     private DatabaseReference mUsersReference;
+    private FirebaseUser mUser;
 
     private FirebaseController() {
         mAuth = FirebaseAuth.getInstance();
@@ -30,6 +31,8 @@ public class FirebaseController {
 
         mItinerariesReference = mDatabase.getReference("/itineraries");
         mUsersReference = mDatabase.getReference("/users");
+
+        mAuth.addAuthStateListener(this);
     }
 
     public static FirebaseController getInstance() {
@@ -41,6 +44,11 @@ public class FirebaseController {
 
     public FirebaseAuth getAuth() {
         return mAuth;
+    }
+
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        mUser = firebaseAuth.getCurrentUser();
     }
 
     public FirebaseUser signInOrCreateAccount(final String email,
@@ -62,7 +70,11 @@ public class FirebaseController {
         return null;
     }
 
-    private void createAccount(String email, String password, OnCompleteListener<AuthResult> listener) {
+    @NonNull
+    private void createAccount(String email,
+                               String password,
+                               OnCompleteListener<AuthResult> listener) {
+
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(listener)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
@@ -71,8 +83,7 @@ public class FirebaseController {
                             FirebaseUser user = task.getResult().getUser();
 
                             DatabaseReference ref = mDatabase.getReference("/users");
-                            // TODO: 5/24/2017 Remove placeholder name
-                            ref.child(user.getUid()).child("name").setValue("Luke Baker");
+                            ref.child(user.getUid()).child("email").setValue(user.getEmail());
                         }
                     }
                 });
@@ -96,11 +107,31 @@ public class FirebaseController {
         }
     }
 
-    public void getItineraries(final ChildEventListener listener) {
-        final FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            mItinerariesReference.orderByChild("owner").equalTo(user.getUid())
+    public void getItineraries(ChildEventListener listener) {
+        if (mUser != null) {
+            mItinerariesReference.orderByChild("owner").equalTo(mUser.getUid())
                     .addChildEventListener(listener);
         }
     }
+
+    public void deleteItinerary(String itineraryId) {
+        if (mUser != null) {
+            mItinerariesReference.child(itineraryId).removeValue();
+            mUsersReference.child(mUser.getUid()).child("itineraries").child(itineraryId).removeValue();
+        }
+    }
+
+    public void addPlaceToItinerary(String placeId, String itineraryId) {
+        mItinerariesReference.child(itineraryId).child("places").child(placeId).setValue(true);
+    }
+
+    public void getPlacesFromItinerary(String itineraryId, ChildEventListener listener) {
+        mItinerariesReference.child(itineraryId).child("places").addChildEventListener(listener);
+    }
+
+    public void deletePlaceFromItinerary(String placeId, String itineraryId) {
+        mItinerariesReference.child(itineraryId).child("places").child(placeId).removeValue();
+    }
+
+
 }
