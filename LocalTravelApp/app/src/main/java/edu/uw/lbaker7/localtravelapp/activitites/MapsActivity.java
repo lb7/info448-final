@@ -2,6 +2,7 @@ package edu.uw.lbaker7.localtravelapp.activitites;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,28 +10,45 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URLEncoder;
+import java.util.ArrayList;
+
+import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int LOCATION_REQUEST_CODE = 1;
-    private PlaceLikelihoodBuffer places;
+    private ArrayList<Places> places;
     private static final String TAG = "MapsActivity";
-
+    private LocationRequest mLocationRequest;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
+    private LatLng last;
 
 
     @Override
@@ -43,10 +61,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
                 .enableAutoManage(this, this)
                 .build();
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(100000);
+        mLocationRequest.setFastestInterval(50000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
 
@@ -67,6 +91,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+
+            }
+        });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return false;
+            }
+        });
 
     }
 //
@@ -106,16 +142,9 @@ protected void onStart() {
         if(permissionCheck == PackageManager.PERMISSION_GRANTED) {
             //have permission, can go ahead and do stuff
             Log.v(TAG, "got permission");
-           Places.PlaceDetectionApi.getCurrentPlace(mGoogleApiClient, null).setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
-               @Override
-               public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
-                   places = placeLikelihoods;
-                   Log.v(TAG, placeLikelihoods.toString());
-               }
-           });
             //PlaceDetectionApi
             //assumes location settings enabled
-            //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, , this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest , this);
 
         }
         else {
@@ -142,5 +171,172 @@ protected void onStart() {
         Log.v(TAG, "onConnectionSuspended");
 
 
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if(location != null){
+            String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
+            String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+            last = new LatLng(location.getLatitude(), location.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
+                        //handling response
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            setRecent(response);//calling function to present data
+                        }
+                    }, new Response.ErrorListener() {
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.v(TAG, "There was an error:" + error);
+                        }
+                    });
+
+            // Adding the request to the NewsRequestQueue
+            PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
+        }
+
+    }
+    /*
+   [{"geometry":{
+   "location":{"lat":-33.8709434,"lng":151.1903114}
+
+     */
+    public void setRecent(JSONObject response){
+        mMap.clear();
+        try {
+            JSONArray jsonResults = response.getJSONArray("results"); //response.results
+
+            for(int i=0; i<jsonResults.length(); i++) {
+                JSONObject resultItemObj = jsonResults.getJSONObject(i);
+                JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
+                LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
+                mMap.addMarker(new MarkerOptions().position(ltlg).title(resultItemObj.getString("name")).snippet("Click to see more!"));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
+
+                Log.v(TAG, ltlg.toString());
+
+
+//                String headline = resultItemObj.getString("title");
+//                String webUrl = resultItemObj.getString("url");
+//                String snippet = resultItemObj.getString("abstract");
+//
+//                //date handling
+//                String pubDateString = resultItemObj.getString("published_date");
+//                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ");
+//
+//                //image extracting
+//                JSONArray jsonMultimedia = resultItemObj.getJSONArray("multimedia");
+//                Place pl = new Place() {
+//                    @Override
+//                    public String getId() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public List<Integer> getPlaceTypes() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public CharSequence getAddress() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public Locale getLocale() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public CharSequence getName() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public LatLng getLatLng() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public LatLngBounds getViewport() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public Uri getWebsiteUri() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public CharSequence getPhoneNumber() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public float getRating() {
+//                        return 0;
+//                    }
+//
+//                    @Override
+//                    public int getPriceLevel() {
+//                        return 0;
+//                    }
+//
+//                    @Override
+//                    public CharSequence getAttributions() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public Place freeze() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    public boolean isDataValid() {
+//                        return false;
+//                    }
+//                };
+            }
+        }catch (JSONException e ){
+            Log.v(TAG, "youfialsd");
+        }
+    }
+    public void handleSearch(View v){
+        EditText editText = (EditText) findViewById(R.id.search);
+        String search = URLEncoder.encode(editText.getText().toString());
+        Log.v(TAG, search);
+
+
+        String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&key=" + getString(R.string.google_place_key);
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
+                    //handling response
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        setRecent(response);//calling function to present data
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.v(TAG, "There was an error:" + error);
+                    }
+                });
+
+        // Adding the request to the NewsRequestQueue
+        PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
+
+
+    }
+    public void handleFilter(View v){
+        Log.v(TAG, "you filtered");
     }
 }
