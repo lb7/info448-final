@@ -1,12 +1,8 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
-import android.support.v4.app.FragmentActivity;
-
-import com.google.android.gms.maps.OnMapReadyCallback;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
-
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -40,7 +36,6 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
-
 
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
