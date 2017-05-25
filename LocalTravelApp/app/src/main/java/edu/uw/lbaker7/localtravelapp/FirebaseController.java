@@ -2,6 +2,7 @@ package edu.uw.lbaker7.localtravelapp;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -9,9 +10,13 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.ProviderQueryResult;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.List;
 
 public class FirebaseController {
 
@@ -82,14 +87,38 @@ public class FirebaseController {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(listener);
     }
 
-    public void addItinerary(@Nullable OnCompleteListener listener) {
-        DatabaseReference itineraryReference = mItinerariesReference.push();
-        //itineraryReference.child("")
+    public void addItinerary(ItineraryListItem itinerary, @Nullable OnCompleteListener listener) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            DatabaseReference itineraryReference = mItinerariesReference.push();
+            itineraryReference.setValue(itinerary);
+            itineraryReference.child("owner").setValue(mAuth.getCurrentUser().getUid());
 
+            mUsersReference.child(user.getUid())
+                    .child("itineraries")
+                    .child(itineraryReference.getKey())
+                    .setValue(true);
+        }
     }
 
-    public void getItineraries(ValueEventListener listener) {
-        DatabaseReference ref = mDatabase.getReference("itineraries");
-        ref.addValueEventListener(listener);
+    public void getItineraries(final List<ItineraryListItem> itineraries) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            mUsersReference.child(user.getUid()).child("itineraries").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                    for (DataSnapshot child : children) {
+                        //mItinerariesReference.child(child.getKey()).addListenerForSingleValueEvent(listener);
+                        itineraries.add(child.getValue(ItineraryListItem.class));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, databaseError.toException());
+                }
+            });
+        }
     }
 }
