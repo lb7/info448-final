@@ -1,7 +1,9 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -10,9 +12,16 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import edu.uw.lbaker7.localtravelapp.R;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+import edu.uw.lbaker7.localtravelapp.PlaceItem;
+import edu.uw.lbaker7.localtravelapp.R;
+import edu.uw.lbaker7.localtravelapp.fragments.ItineraryDetailFragment;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, ItineraryDetailFragment.OnCreateMapButtonSelectedListener {
+
+    private static final String TAG = "MapsActivity";
 
     private GoogleMap mMap;
 
@@ -24,6 +33,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        ArrayList<String> placeIds = new ArrayList<String>();
+        ItineraryDetailFragment itineraryDetailFragment =
+                ItineraryDetailFragment.newInstance("Bar Crawl", placeIds);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.map, itineraryDetailFragment, "ItineraryDetailFragment");
+        ft.addToBackStack(null);
+        ft.commit();
     }
 
 
@@ -45,4 +62,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
+
+    @Override
+    public void onCreateMapButtonSelected(List<PlaceItem> places) {
+        Log.v(TAG, "creating map of places");
+        //start map of itinerary places fragment/activity
+    }
+
 }
