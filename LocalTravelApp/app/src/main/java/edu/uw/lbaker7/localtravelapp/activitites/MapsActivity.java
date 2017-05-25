@@ -22,7 +22,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -43,7 +42,7 @@ import edu.uw.lbaker7.localtravelapp.R;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int LOCATION_REQUEST_CODE = 1;
-    private ArrayList<Places> places;
+    private ArrayList<PlaceItem> places;
     private static final String TAG = "MapsActivity";
     private LocationRequest mLocationRequest;
     private GoogleMap mMap;
@@ -94,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-
+                
             }
         });
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -105,12 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
     }
-//
-//
-//    @Override
-//    public void onLocationChanged(Location location) {
-//       // https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-33.8670522,151.1957362&radius=500&type=restaurant&keyword=cruise&key=
-//    }
+
 @Override
 protected void onStart() {
     Log.v(TAG, "Started!!!");
@@ -180,7 +174,6 @@ protected void onStart() {
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
             last = new LatLng(location.getLatitude(), location.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
-
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                         //handling response
@@ -210,101 +203,35 @@ protected void onStart() {
         mMap.clear();
         try {
             JSONArray jsonResults = response.getJSONArray("results"); //response.results
-
+            places = new ArrayList<PlaceItem>();
             for(int i=0; i<jsonResults.length(); i++) {
+
                 JSONObject resultItemObj = jsonResults.getJSONObject(i);
                 JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
                 LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
-                mMap.addMarker(new MarkerOptions().position(ltlg).title(resultItemObj.getString("name")).snippet("Click to see more!"));
+                String placeName = resultItemObj.getString("name");
+                String id = resultItemObj.getString("id");
+                String icon = resultItemObj.getString("icon");
+                String address = resultItemObj.getString("vicinity");
+                Double rating = 0.0;
+                if(!resultItemObj.isNull("rating")){
+                    rating = resultItemObj.getDouble("rating");
+                }
+                int priceLevel = 0;
+                if(!resultItemObj.isNull("price_level")){
+                    priceLevel =  resultItemObj.getInt("price_level");
+                }
+                PlaceItem place = new PlaceItem(placeName, ltlg , icon, address, id, rating, priceLevel);
+                Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
+                marker.setTag(place);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
 
                 Log.v(TAG, ltlg.toString());
 
 
-//                String headline = resultItemObj.getString("title");
-//                String webUrl = resultItemObj.getString("url");
-//                String snippet = resultItemObj.getString("abstract");
-//
-//                //date handling
-//                String pubDateString = resultItemObj.getString("published_date");
-//                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ");
-//
-//                //image extracting
-//                JSONArray jsonMultimedia = resultItemObj.getJSONArray("multimedia");
-//                Place pl = new Place() {
-//                    @Override
-//                    public String getId() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public List<Integer> getPlaceTypes() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public CharSequence getAddress() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public Locale getLocale() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public CharSequence getName() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public LatLng getLatLng() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public LatLngBounds getViewport() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public Uri getWebsiteUri() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public CharSequence getPhoneNumber() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public float getRating() {
-//                        return 0;
-//                    }
-//
-//                    @Override
-//                    public int getPriceLevel() {
-//                        return 0;
-//                    }
-//
-//                    @Override
-//                    public CharSequence getAttributions() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public Place freeze() {
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    public boolean isDataValid() {
-//                        return false;
-//                    }
-//                };
             }
         }catch (JSONException e ){
-            Log.v(TAG, "youfialsd");
+            Log.v(TAG, e.toString());
         }
     }
     public void handleSearch(View v){
@@ -338,5 +265,28 @@ protected void onStart() {
     }
     public void handleFilter(View v){
         Log.v(TAG, "you filtered");
+    }
+    public class PlaceItem {
+        public String placeName;
+        public LatLng coordinates;
+        public String icon;
+        public String address;
+        public String id;
+        public Double rating;
+        public int priceLevel;
+
+        public PlaceItem() {
+
+        }
+
+        public PlaceItem(String placeName, LatLng coordinates, String icon, String address, String id, Double rating, int priceLevel) {
+            this.placeName = placeName;
+            this.coordinates = coordinates;
+            this.icon = icon;
+            this.address = address;
+            this.id = id;
+            this.rating = rating;
+            this.priceLevel = priceLevel;
+        }
     }
 }
