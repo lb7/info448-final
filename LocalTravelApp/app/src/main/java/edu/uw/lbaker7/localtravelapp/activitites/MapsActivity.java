@@ -1,15 +1,19 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
@@ -41,7 +45,7 @@ import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
     private static final String TAG = "MapsActivity";
@@ -268,6 +272,34 @@ protected void onStart() {
     public void handleFilter(View v){
         Log.v(TAG, "you filtered");
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+
+        return true; //we've provided a menu!
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.itineraries:
+                startActivity(new Intent(MapsActivity.this, ItineraryActivity.class));
+                return true; //handled
+            case R.id.mapList:
+
+                return true; //handled
+            case R.id.settings:
+                startActivity(new Intent(MapsActivity.this, SettingsActivity.class));
+                return true; //handled
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     public class PlaceItem {
         public String placeName;
         public LatLng coordinates;
@@ -290,5 +322,7 @@ protected void onStart() {
             this.rating = rating;
             this.priceLevel = priceLevel;
         }
+
+
     }
 }
