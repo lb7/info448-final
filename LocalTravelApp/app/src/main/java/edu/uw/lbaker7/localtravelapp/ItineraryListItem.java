@@ -7,7 +7,6 @@ public class ItineraryListItem {
 
     public String itineraryName;
     public String dateCreated;
-    public String itineraryKey;
 
     public HashMap<String, Boolean> places;
 
@@ -15,10 +14,9 @@ public class ItineraryListItem {
 
     }
 
-    public ItineraryListItem(String name, String date, String key) {
+    public ItineraryListItem(String name, String date) {
         this.itineraryName = name;
         this.dateCreated = date;
-        this.itineraryKey = key;
     }
 
     //Getters needed by firebase

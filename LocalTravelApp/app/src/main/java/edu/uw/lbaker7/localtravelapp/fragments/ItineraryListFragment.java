@@ -1,17 +1,24 @@
 package edu.uw.lbaker7.localtravelapp.fragments;
 
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,7 +27,9 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.FirebaseController;
@@ -39,7 +48,8 @@ public class ItineraryListFragment extends Fragment {
 
     private List<ItineraryListItem> data;
     private ItineraryAdapter adapter;
-    private FirebaseController firebaseController;
+    private static FirebaseController firebaseController;
+    private String itineraryKey;
 
     public interface OnItinerarySelectedListener {
         void onItinerarySelected(ItineraryListItem item);
@@ -86,10 +96,10 @@ public class ItineraryListFragment extends Fragment {
         firebaseController.getItineraries(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String itineraryKey = dataSnapshot.getKey();
+                itineraryKey = dataSnapshot.getKey();
                 String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
                 String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
-                ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated, itineraryKey);
+                ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
                 data.add(item);
                 adapter.notifyDataSetChanged();
             }
@@ -128,7 +138,7 @@ public class ItineraryListFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         data.remove(listItem);
-                        firebaseController.deleteItinerary(listItem.itineraryKey);
+                        firebaseController.deleteItinerary(itineraryKey);
                         adapter.notifyDataSetChanged();
                         btnDelete.setVisibility(View.INVISIBLE);
                     }
@@ -143,6 +153,16 @@ public class ItineraryListFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
                 itinerarySelectedCallback.onItinerarySelected(listItem);
+            }
+        });
+
+        //create a new itinerary, prompts user for new itinerary name
+        FloatingActionButton fab = (FloatingActionButton)rootView.findViewById(R.id.fab_new_itinerary);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment dialog = NewItineraryDialog.newInstance();
+                dialog.show(getFragmentManager(), "new itinerary dialog");
             }
         });
 
@@ -187,6 +207,49 @@ public class ItineraryListFragment extends Fragment {
             holder.date.setText("Date created: " + item.dateCreated);
 
             return convertView;
+        }
+    }
+
+    public static class NewItineraryDialog extends DialogFragment {
+
+        public static NewItineraryDialog newInstance() {
+
+            Bundle args = new Bundle();
+
+            NewItineraryDialog fragment = new NewItineraryDialog();
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+            final EditText itineraryNameInput = new EditText(getContext());
+            itineraryNameInput.setInputType(InputType.TYPE_CLASS_TEXT);
+            itineraryNameInput.setHint("Itinerary Name");
+
+            return new AlertDialog.Builder(getActivity())
+                    .setTitle("Create Itinerary")
+                    .setView(itineraryNameInput)
+                    .setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Date date = new Date();
+                            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+                            String dateString = sdf.format(date);
+                            String newItineraryName = itineraryNameInput.getText().toString();
+                            ItineraryListItem newItem = new ItineraryListItem(newItineraryName, dateString);
+                            firebaseController.addItinerary(newItem);
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .create();
         }
     }
 
