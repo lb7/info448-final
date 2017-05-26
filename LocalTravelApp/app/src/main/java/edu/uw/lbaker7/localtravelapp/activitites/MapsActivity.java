@@ -45,6 +45,8 @@ import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 
 
+
+
 public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
