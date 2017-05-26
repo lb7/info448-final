@@ -1,6 +1,7 @@
 package edu.uw.lbaker7.localtravelapp;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -32,6 +33,7 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         mUsersReference = mDatabase.getReference("/users");
 
         mAuth.addAuthStateListener(this);
+        mUser = mAuth.getCurrentUser();
     }
 
     public static FirebaseController getInstance() {
@@ -41,8 +43,13 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         return mInstance;
     }
 
-    public FirebaseAuth getAuth() {
-        return mAuth;
+    /**
+     * Gets the current user. This value is updated automatically on auth state changes. Will be null if no
+     * user is logged in.
+     */
+    @Nullable
+    public FirebaseUser getUser() {
+        return mUser;
     }
 
     @Override
