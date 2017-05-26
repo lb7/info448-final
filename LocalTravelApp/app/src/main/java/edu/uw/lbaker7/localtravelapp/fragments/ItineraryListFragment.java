@@ -16,9 +16,14 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.uw.lbaker7.localtravelapp.FirebaseController;
 import edu.uw.lbaker7.localtravelapp.ItineraryListItem;
 import edu.uw.lbaker7.localtravelapp.R;
 
@@ -34,6 +39,7 @@ public class ItineraryListFragment extends Fragment {
 
     private List<ItineraryListItem> data;
     private ItineraryAdapter adapter;
+    private FirebaseController firebaseController;
 
     public interface OnItinerarySelectedListener {
         void onItinerarySelected(ItineraryListItem item);
@@ -75,20 +81,59 @@ public class ItineraryListFragment extends Fragment {
         ListView itineraryListView = (ListView)rootView.findViewById(R.id.itinerary_list);
         data = new ArrayList<>();
 
-        //dummy data for testing
-        ItineraryListItem item1 = new ItineraryListItem("Seattle", "02 May 2017");
-        ItineraryListItem item2 = new ItineraryListItem("Tacoma", "05 May 2017");
-        ItineraryListItem item3 = new ItineraryListItem("Bellevue", "23 May 2017");
-        ItineraryListItem item4 = new ItineraryListItem("Olympia", "22 May 2017");
-        Log.v(TAG, item1.itineraryName);
-        Log.v(TAG, item1.dateCreated);
-        data.add(item1);
-        data.add(item2);
-        data.add(item3);
-        data.add(item4);
+
+        firebaseController = FirebaseController.getInstance();
+
+        firebaseController.getItineraries(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String itineraryKey = dataSnapshot.getKey();
+                String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
+                String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
+                Log.v(TAG, "itinerary key = " + itineraryKey);
+                Log.v(TAG, "itinerary name =" + itineraryName);
+                Log.v(TAG, "itinerary date = " + dateCreated);
+                ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated, itineraryKey);
+                data.add(item);
+                //adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                //adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                //adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         adapter = new ItineraryAdapter(getActivity(), data);
         itineraryListView.setAdapter(adapter);
+
+//        //dummy data for testing
+//        ItineraryListItem item1 = new ItineraryListItem("Seattle", "02 May 2017");
+//        ItineraryListItem item2 = new ItineraryListItem("Tacoma", "05 May 2017");
+//        ItineraryListItem item3 = new ItineraryListItem("Bellevue", "23 May 2017");
+//        ItineraryListItem item4 = new ItineraryListItem("Olympia", "22 May 2017");
+//        Log.v(TAG, item1.itineraryName);
+//        Log.v(TAG, item1.dateCreated);
+//        data.add(item1);
+//        data.add(item2);
+//        data.add(item3);
+//        data.add(item4);
+
 
         itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -101,6 +146,7 @@ public class ItineraryListFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         data.remove(listItem);
+                        firebaseController.deleteItinerary(listItem.itineraryKey);
                         adapter.notifyDataSetChanged();
                         btnDelete.setVisibility(View.INVISIBLE);
 

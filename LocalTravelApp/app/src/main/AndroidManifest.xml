@@ -46,7 +46,6 @@
 
         <activity android:name=".activitites.ItineraryActivity"
             android:parentActivityName=".activitites.MapsActivity">
-
         </activity>
 
         <activity android:name=".activitites.BaseActivity">
