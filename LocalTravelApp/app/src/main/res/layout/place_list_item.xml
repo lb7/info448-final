@@ -3,7 +3,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
+    <com.android.volley.toolbox.NetworkImageView
         android:id="@+id/img_place"
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -17,20 +17,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:text="place name"
         android:layout_toRightOf="@+id/img_place"
         />
 
     <TextView
-        android:id="@+id/txt_place_descr"
+        android:id="@+id/txt_place_address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:layout_below="@id/txt_place_name"
         android:layout_alignLeft="@id/txt_place_name"
         android:textSize="15sp"
-        android:text="Place Description"
+        android:text="Place Address"
         />
 
     <TextView
@@ -38,19 +38,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:layout_below="@id/txt_place_descr"
+        android:layout_below="@id/txt_place_address"
         android:layout_alignLeft="@id/txt_place_name"
         android:text="rating"
         android:textSize="15sp"
         />
 
-    <Button
+    <ImageButton
         android:id="@+id/btn_add_place"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:text="Add to itinerary"
+        android:src="@android:drawable/ic_input_add"
         />
 
 

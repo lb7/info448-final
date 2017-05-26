@@ -43,18 +43,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-<<<<<<< HEAD
 
         <activity android:name=".activitites.ItineraryActivity"
             android:parentActivityName=".activitites.MapsActivity">
-=======
-        <activity android:name=".activitites.ItineraryActivity">
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN"/>-->
 
-                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-            <!--</intent-filter>-->
->>>>>>> 6e8ef36afd1c8bd7419963c4ce08560d616499e4
         </activity>
 
         <activity android:name=".activitites.BaseActivity">
