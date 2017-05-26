@@ -10,10 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.PlaceItem;
 import edu.uw.lbaker7.localtravelapp.R;
+import edu.uw.lbaker7.localtravelapp.VolleySingleton;
 
 
 /**
@@ -87,13 +90,16 @@ public class ItineraryDetailFragment extends Fragment {
 
         //load dummy data until firebase fetching, api requesting, and json parsing are all fully implemented
 
-        PlaceItem itemOne = new PlaceItem("Famous House", new LatLng(22.71409, -147.2209), "url", "22 Baker Street");
-        PlaceItem itemTwo = new PlaceItem("Jakob's Bar", new LatLng(22.74098, -150.2211), "url", "51 Main Street");
-        PlaceItem itemThree = new PlaceItem("Honeycomb Factory", new LatLng(21.0987, -151.2288), "url", "509 Eaton Lane");
+        PlaceItem itemOne = new PlaceItem("Famous House", new LatLng(22.71409, -147.2209), "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png", "22 Baker Street");
+        PlaceItem itemTwo = new PlaceItem("Jakob's Bar", new LatLng(22.74098, -150.2211), "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png", "51 Main Street");
+        PlaceItem itemThree = new PlaceItem("Honeycomb Factory", new LatLng(21.0987, -151.2288), "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png", "509 Eaton Lane");
 
         adapter.add(itemOne);
+        places.add(itemOne);
         adapter.add(itemTwo);
+        places.add(itemTwo);
         adapter.add(itemThree);
+        places.add(itemThree);
     }
 
     public class PlaceItemAdapter extends ArrayAdapter<PlaceItem> {
@@ -103,7 +109,7 @@ public class ItineraryDetailFragment extends Fragment {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
             PlaceItem data = getItem(position);
             if (convertView == null) {
                 convertView = LayoutInflater.from(getActivity()).inflate(R.layout.item_place, parent, false);
@@ -114,7 +120,38 @@ public class ItineraryDetailFragment extends Fragment {
             TextView placeNameView = (TextView) convertView.findViewById(R.id.placeName);
             TextView placeAddressView = (TextView) convertView.findViewById(R.id.placeAddress);
 
-            //fetchPlaceIcon(data.icon, placeIconView);
+            ImageButton moveDownButton = (ImageButton) convertView.findViewById(R.id.moveDownButton);
+            ImageButton moveUpButton = (ImageButton) convertView.findViewById(R.id.moveUpButton);
+
+            moveDownButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (position < (adapter.getCount() - 1)) {
+                        PlaceItem placeToMove = adapter.getItem(position);
+                        adapter.remove(placeToMove);
+                        adapter.insert(placeToMove, position + 1);
+                    }
+
+                    //TODO - Update firebase here
+
+                }
+            });
+
+            moveUpButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (position > 0) {
+                        PlaceItem placeToMove = adapter.getItem(position);
+                        adapter.remove(placeToMove);
+                        adapter.insert(placeToMove, position - 1);
+                    }
+
+                    //TODO - Update firebase here
+
+                }
+            });
+
+            fetchPlaceIcon(data.icon, placeIconView);
 
             positionNumberView.setText(Integer.toString(position + 1));
             placeNameView.setText(data.placeName);
@@ -124,16 +161,20 @@ public class ItineraryDetailFragment extends Fragment {
         }
     }
 
-    /*private void fetchPlaceIcon(String url, ImageView placeIconView){
+    private void fetchPlaceIcon(String url, ImageView placeIconView){
         ImageLoader loader = VolleySingleton.getInstance(getActivity()).getImageLoader();
         loader.get(url, ImageLoader.getImageListener(placeIconView, 0, 0));
-    }*/
+    }
 
     private ArrayList<PlaceItem> getPlacesFromId(ArrayList<String> placeIds) {
         //https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM
         ArrayList<PlaceItem> placeList = new ArrayList<PlaceItem>();
 
         return placeList;
+    }
+
+    private void onCreateMap(ArrayList<PlaceItem> places) {
+
     }
 
 }
