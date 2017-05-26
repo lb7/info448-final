@@ -34,6 +34,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -120,6 +121,10 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
 @Override
 protected void onStart() {
     Log.v(TAG, "Started!!!");
+
+    if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        startActivity(new Intent(this, LoginActivity.class));
+    }
 
     mGoogleApiClient.connect();
     super.onStart();
