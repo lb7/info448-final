@@ -23,6 +23,8 @@ public class ItineraryActivity extends BaseActivity implements ItineraryListFrag
 
     @Override
     public void onItinerarySelected(ItineraryListItem item) {
+        String itineraryName = item.itineraryName;
         FragmentTransaction ft  = getSupportFragmentManager().beginTransaction();
+
     }
 }
