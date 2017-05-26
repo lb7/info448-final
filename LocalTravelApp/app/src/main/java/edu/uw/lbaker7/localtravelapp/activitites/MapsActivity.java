@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -36,13 +35,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import edu.uw.lbaker7.localtravelapp.R;
-import edu.uw.lbaker7.localtravelapp.fragments.ItineraryDetailFragment;
-import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -214,7 +206,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     });
 
-            // Adding the request to the NewsRequestQueue
+            // Adding the request to the PlacesRequestQueue
             PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
         }
 
