@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -44,11 +45,10 @@ import java.util.ArrayList;
 
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
+import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
 
-
-
-public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener {
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
     private static final String TAG = "MapsActivity";
@@ -56,6 +56,8 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private LatLng last;
+    private PlaceListFragment placeListFragment;
+    private Menu menu;
 
 
     @Override
@@ -78,6 +80,9 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         mLocationRequest.setInterval(100000);
         mLocationRequest.setFastestInterval(50000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        placeListFragment = PlaceListFragment.newInstance();
+
     }
 
 
@@ -284,6 +289,7 @@ protected void onStart() {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
+        this.menu = menu;
 
         return true; //we've provided a menu!
     }
@@ -297,7 +303,10 @@ protected void onStart() {
                 startActivity(new Intent(MapsActivity.this, ItineraryActivity.class));
                 return true; //handled
             case R.id.mapList:
-
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.map_container, placeListFragment);
+                ft.commit();
+                item.setVisible(false);
                 return true; //handled
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -311,6 +320,8 @@ protected void onStart() {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
     public class PlaceItem {
         public String placeName;
         public LatLng coordinates;
@@ -334,6 +345,18 @@ protected void onStart() {
             this.priceLevel = priceLevel;
         }
 
+    }
 
+    public ArrayList<PlaceItem> getPlaceList() {
+        return places;
+    }
+
+    @Override
+    public void onMapButtonClicked() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.remove(placeListFragment);
+        ft.commit();
+        MenuItem item = menu.findItem(R.id.mapList);
+        item.setVisible(true);
     }
 }
