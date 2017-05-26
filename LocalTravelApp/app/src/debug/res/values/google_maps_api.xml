@@ -10,7 +10,6 @@
 
     Package name:
     34:5E:19:CB:D0:0E:84:C5:58:5F:51:17:78:A8:24:84:AB:FE:BF:13
-
     SHA-1 certificate fingerprint:
     34:5E:19:CB:D0:0E:84:C5:58:5F:51:17:78:A8:24:84:AB:FE:BF:13
 
@@ -23,4 +22,6 @@
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">
         AIzaSyDDauauGtncSIvLyTbVe9BmmPGGBYmL6hE
     </string>
+    <string name="google_place_key">AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM</string>
+
 </resources>
