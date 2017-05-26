@@ -300,8 +300,12 @@ protected void onStart() {
 
                 return true; //handled
             case R.id.settings:
-                startActivity(new Intent(MapsActivity.this, SettingsActivity.class));
-                return true; //handled
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            case R.id.logout:
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(this, LoginActivity.class));
+                return true;
 
             default:
                 return super.onOptionsItemSelected(item);
