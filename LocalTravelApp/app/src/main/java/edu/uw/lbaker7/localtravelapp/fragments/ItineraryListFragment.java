@@ -49,7 +49,6 @@ public class ItineraryListFragment extends Fragment {
     private List<ItineraryListItem> data;
     private ItineraryAdapter adapter;
     private static FirebaseController firebaseController;
-    private String itineraryKey;
 
     public interface OnItinerarySelectedListener {
         void onItinerarySelected(ItineraryListItem item);
@@ -96,10 +95,11 @@ public class ItineraryListFragment extends Fragment {
         firebaseController.getItineraries(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                itineraryKey = dataSnapshot.getKey();
+                String itineraryKey = dataSnapshot.getKey();
                 String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
                 String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
+                item.setKey(itineraryKey);
                 data.add(item);
                 adapter.notifyDataSetChanged();
             }
@@ -128,17 +128,17 @@ public class ItineraryListFragment extends Fragment {
 
         itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 Log.v(TAG, "long click");
 
                 final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
-                final ImageButton btnDelete = (ImageButton) view.findViewById(R.id.btn_delete_itinerary);
+                final ImageButton btnDelete = (ImageButton)view.findViewById(R.id.btn_delete_itinerary);
                 btnDelete.setVisibility(View.VISIBLE); //show delete button
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        data.remove(listItem);
-                        firebaseController.deleteItinerary(itineraryKey);
+                        data.remove(position);
+                        firebaseController.deleteItinerary(listItem.getKey());
                         adapter.notifyDataSetChanged();
                         btnDelete.setVisibility(View.INVISIBLE);
                     }
@@ -151,8 +151,13 @@ public class ItineraryListFragment extends Fragment {
         itineraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
-                itinerarySelectedCallback.onItinerarySelected(listItem);
+                final ImageButton btnDelete = (ImageButton)view.findViewById(R.id.btn_delete_itinerary);
+                if (btnDelete.isShown()) {
+                    btnDelete.setVisibility(View.INVISIBLE);
+                } else {
+                    ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
+                    itinerarySelectedCallback.onItinerarySelected(listItem);
+                }
             }
         });
 
@@ -177,6 +182,7 @@ public class ItineraryListFragment extends Fragment {
         private class ViewHolder {
             TextView itineraryName;
             TextView date;
+
         }
 
         public ItineraryAdapter(Context context, List<ItineraryListItem> itineraryItem) {
@@ -210,6 +216,7 @@ public class ItineraryListFragment extends Fragment {
         }
     }
 
+    //Dialog for creating a new itinerary
     public static class NewItineraryDialog extends DialogFragment {
 
         public static NewItineraryDialog newInstance() {
