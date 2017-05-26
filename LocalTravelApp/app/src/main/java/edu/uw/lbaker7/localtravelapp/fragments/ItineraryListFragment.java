@@ -69,79 +69,61 @@ public class ItineraryListFragment extends Fragment {
         }
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.v(TAG, "On create view");
-
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_itinerary_list, container, false);
-        ListView itineraryListView = (ListView)rootView.findViewById(R.id.itinerary_list);
+        final ListView itineraryListView = (ListView)rootView.findViewById(R.id.itinerary_list);
         data = new ArrayList<>();
-
+        adapter = new ItineraryAdapter(getActivity(), data);
+        itineraryListView.setAdapter(adapter);
 
         firebaseController = FirebaseController.getInstance();
 
+        //get the itineraries from Firebase
         firebaseController.getItineraries(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String itineraryKey = dataSnapshot.getKey();
                 String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
                 String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
-                Log.v(TAG, "itinerary key = " + itineraryKey);
-                Log.v(TAG, "itinerary name =" + itineraryName);
-                Log.v(TAG, "itinerary date = " + dateCreated);
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated, itineraryKey);
                 data.add(item);
-                //adapter.notifyDataSetChanged();
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                //adapter.notifyDataSetChanged();
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                //adapter.notifyDataSetChanged();
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                adapter.notifyDataSetChanged();
             }
         });
-
-        adapter = new ItineraryAdapter(getActivity(), data);
-        itineraryListView.setAdapter(adapter);
-
-//        //dummy data for testing
-//        ItineraryListItem item1 = new ItineraryListItem("Seattle", "02 May 2017");
-//        ItineraryListItem item2 = new ItineraryListItem("Tacoma", "05 May 2017");
-//        ItineraryListItem item3 = new ItineraryListItem("Bellevue", "23 May 2017");
-//        ItineraryListItem item4 = new ItineraryListItem("Olympia", "22 May 2017");
-//        Log.v(TAG, item1.itineraryName);
-//        Log.v(TAG, item1.dateCreated);
-//        data.add(item1);
-//        data.add(item2);
-//        data.add(item3);
-//        data.add(item4);
 
 
         itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.v(TAG, "long click");
 
                 final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
                 final ImageButton btnDelete = (ImageButton) view.findViewById(R.id.btn_delete_itinerary);
-                btnDelete.setVisibility(View.VISIBLE);
+                btnDelete.setVisibility(View.VISIBLE); //show delete button
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -149,12 +131,12 @@ public class ItineraryListFragment extends Fragment {
                         firebaseController.deleteItinerary(listItem.itineraryKey);
                         adapter.notifyDataSetChanged();
                         btnDelete.setVisibility(View.INVISIBLE);
-
                     }
                 });
                 return true;
             }
         });
+
 
         itineraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -168,6 +150,7 @@ public class ItineraryListFragment extends Fragment {
 
     }
 
+    // Custom adapter to convert ItineraryListItem to ListViews
     public class ItineraryAdapter extends ArrayAdapter<ItineraryListItem> {
 
         //placeholder for TextViews
