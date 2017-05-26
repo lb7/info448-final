@@ -1,7 +1,6 @@
 package edu.uw.lbaker7.localtravelapp;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -53,7 +52,7 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
     public FirebaseUser signInOrCreateAccount(final String email,
                                               final String password,
-                                              final OnCompleteListener<AuthResult> listener) {
+                                              @NonNull final OnCompleteListener<AuthResult> listener) {
         mAuth.fetchProvidersForEmail(email)
                 .addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
             @Override
@@ -70,10 +69,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         return null;
     }
 
-    @NonNull
     private void createAccount(String email,
                                String password,
-                               OnCompleteListener<AuthResult> listener) {
+                               @NonNull OnCompleteListener<AuthResult> listener) {
 
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(listener)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -93,7 +91,11 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(listener);
     }
 
-    public void addItinerary(ItineraryListItem itinerary, @Nullable OnCompleteListener listener) {
+    /**
+     * Adds an itinerary to the current users list of itineraries
+     *
+     */
+    public void addItinerary(ItineraryListItem itinerary) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             DatabaseReference itineraryReference = mItinerariesReference.push();
@@ -107,6 +109,11 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         }
     }
 
+    /**
+     * The listener will fire for all entries in the "itineraries" key of the Firebase database.
+     * Call datasnapshot.getValue(ItineraryListItem.class) or use individual datasnapshot.child().getValue()
+     * calls to get information on the itineraries
+     */
     public void getItineraries(ChildEventListener listener) {
         if (mUser != null) {
             mItinerariesReference.orderByChild("owner").equalTo(mUser.getUid())
@@ -114,6 +121,11 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         }
     }
 
+    /**
+     * Deletes the itinerary with the given id. Id can be obtained in the listener passed to
+     * FirebaseController.getItineraries(). Use datasnapshot.getKey() to get the itinerary key. This should
+     * be saved for later access
+     */
     public void deleteItinerary(String itineraryId) {
         if (mUser != null) {
             mItinerariesReference.child(itineraryId).removeValue();
@@ -121,14 +133,23 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         }
     }
 
+    /**
+     * Add a placeId to the itinerary with the given id.
+     */
     public void addPlaceToItinerary(String placeId, String itineraryId) {
         mItinerariesReference.child(itineraryId).child("places").child(placeId).setValue(true);
     }
 
+    /**
+     * Listener will fire on all places inside the "places" child of the specified itinerary
+     */
     public void getPlacesFromItinerary(String itineraryId, ChildEventListener listener) {
         mItinerariesReference.child(itineraryId).child("places").addChildEventListener(listener);
     }
 
+    /**
+     * Deletes the place from the specified itinerary
+     */
     public void deletePlaceFromItinerary(String placeId, String itineraryId) {
         mItinerariesReference.child(itineraryId).child("places").child(placeId).removeValue();
     }
