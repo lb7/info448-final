@@ -31,6 +31,7 @@ public class PlaceListFragment extends Fragment {
     private List<MapsActivity.PlaceItem> data;
     private PlacesAdapter adapter;
     private ImageLoader imageLoader;
+    private static ItineraryListFragment.ItineraryAdapter itineraryAdapter;
 
     private OnMapButtonClickedListener mapButtonClickedCallback;
 
@@ -135,5 +136,4 @@ public class PlaceListFragment extends Fragment {
             return convertView;
         }
     }
-
 }
