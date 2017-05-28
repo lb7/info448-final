@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -43,12 +45,14 @@ import org.json.JSONObject;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
+import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
+import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener, PlacesDialog.OnItineraryChooseListener {
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
     private static final String TAG = "MapsActivity";
@@ -58,6 +62,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng last;
     private PlaceListFragment placeListFragment;
     private Menu menu;
+    private PlacesDialog placesDialog;
 
 
     @Override
@@ -106,7 +111,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
+                PlaceItem placeItem = (PlaceItem) marker.getTag();
+               placesDialog = PlacesDialog.newInstance(placeItem);
 
+                placesDialog.newInstance(placeItem).show(getSupportFragmentManager(), "PlacesDialog");
             }
         });
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -321,8 +329,17 @@ protected void onStart() {
         }
     }
 
+    @Override
+    public void onItineraryChoose(PlaceItem item) {
+        Log.v(TAG, "Should work");
+        Log.v(TAG, getFragmentManager().toString());
+        //placesDialog.dismiss();
+        AddPlaceDialog.newInstance(item).show(getSupportFragmentManager(),"ChooseItinerary");
 
-    public class PlaceItem {
+    }
+
+
+    public static class PlaceItem implements Parcelable {
         public String placeName;
         public LatLng coordinates;
         public String icon;
@@ -345,6 +362,41 @@ protected void onStart() {
             this.priceLevel = priceLevel;
         }
 
+        protected PlaceItem(Parcel in) {
+            placeName = in.readString();
+            coordinates = in.readParcelable(LatLng.class.getClassLoader());
+            icon = in.readString();
+            address = in.readString();
+            id = in.readString();
+            priceLevel = in.readInt();
+        }
+
+        public final Creator<PlaceItem> CREATOR = new Creator<PlaceItem>() {
+            @Override
+            public PlaceItem createFromParcel(Parcel in) {
+                return new PlaceItem(in);
+            }
+
+            @Override
+            public PlaceItem[] newArray(int size) {
+                return new PlaceItem[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(placeName);
+            dest.writeParcelable(coordinates, flags);
+            dest.writeString(icon);
+            dest.writeString(address);
+            dest.writeString(id);
+            dest.writeInt(priceLevel);
+        }
     }
 
     public ArrayList<PlaceItem> getPlaceList() {
