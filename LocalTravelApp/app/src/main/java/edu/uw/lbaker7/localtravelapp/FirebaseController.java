@@ -100,20 +100,25 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
     /**
      * Adds an itinerary to the current users list of itineraries
-     *
+     * Returns the key of the itinerary that was created. Returns null if the user is not signed in.
      */
-    public void addItinerary(ItineraryListItem itinerary) {
+    @Nullable
+    public String addItinerary(ItineraryListItem itinerary) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             DatabaseReference itineraryReference = mItinerariesReference.push();
             itineraryReference.setValue(itinerary);
             itineraryReference.child("owner").setValue(mAuth.getCurrentUser().getUid());
 
+            String itineraryKey = itineraryReference.getKey();
+
             mUsersReference.child(user.getUid())
                     .child("itineraries")
-                    .child(itineraryReference.getKey())
+                    .child(itineraryKey)
                     .setValue(true);
+            return itineraryKey;
         }
+        return null;
     }
 
     /**
