@@ -53,6 +53,7 @@ import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener, PlacesDialog.OnItineraryChooseListener {
+
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
     private static final String TAG = "MapsActivity";
@@ -73,6 +74,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addConnectionCallbacks(this)
@@ -126,17 +128,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-@Override
-protected void onStart() {
-    Log.v(TAG, "Started!!!");
+    @Override
+    protected void onStart() {
+        Log.v(TAG, "Started!!!");
 
-    if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-        startActivity(new Intent(this, LoginActivity.class));
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+           startActivity(new Intent(this, LoginActivity.class));
+        }
+
+        mGoogleApiClient.connect();
+        super.onStart();
     }
-
-    mGoogleApiClient.connect();
-    super.onStart();
-}
 
     @Override
     protected void onStop() {
@@ -214,7 +216,7 @@ protected void onStart() {
                         }
                     });
 
-            // Adding the request to the NewsRequestQueue
+            // Adding the request to the PlacesRequestQueue
             PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
         }
 
