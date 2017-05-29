@@ -31,7 +31,6 @@ public class PlaceListFragment extends Fragment {
     private List<MapsActivity.PlaceItem> data;
     private PlacesAdapter adapter;
     private ImageLoader imageLoader;
-    private static ItineraryListFragment.ItineraryAdapter itineraryAdapter;
 
     private OnMapButtonClickedListener mapButtonClickedCallback;
 
@@ -96,7 +95,6 @@ public class PlaceListFragment extends Fragment {
             TextView rating;
         }
 
-        // List<String> for now
         public PlacesAdapter(Context context, List<MapsActivity.PlaceItem> places) {
             super(context, R.layout.place_list_item, places);
         }
