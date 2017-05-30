@@ -54,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
                                                     getSupportFragmentManager(),
                                                     "displayNameDialog"
                                             );
+
                                         } else {
                                             startActivity(new Intent(getApplicationContext(), MapsActivity.class));
                                         }
