@@ -85,6 +85,7 @@ public class ItineraryDetailFragment extends Fragment {
 
         if (getArguments() != null) {
             itineraryKey = getArguments().getString(ITINERARY_ID_KEY);
+            Log.v(TAG, itineraryKey);
             String itineraryName = getArguments().getString(ITINERARY_NAME_KEY);
             TextView name = (TextView) rootView.findViewById(R.id.itineraryName);
             name.setText(itineraryName);

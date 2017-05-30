@@ -95,7 +95,6 @@ public class PlaceListFragment extends Fragment {
             TextView rating;
         }
 
-        // List<String> for now
         public PlacesAdapter(Context context, List<MapsActivity.PlaceItem> places) {
             super(context, R.layout.place_list_item, places);
         }
@@ -135,5 +134,4 @@ public class PlaceListFragment extends Fragment {
             return convertView;
         }
     }
-
 }

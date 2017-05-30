@@ -6,8 +6,8 @@ import java.util.HashMap;
 public class ItineraryListItem {
 
     public String itineraryName;
-    public String itineraryKey;
     public String dateCreated;
+    public String itineraryKey;
 
     public HashMap<String, Boolean> places;
 
@@ -37,5 +37,13 @@ public class ItineraryListItem {
 
     public HashMap<String, Boolean> getPlaces() {
         return places;
+    }
+
+    public void setKey(String key) {
+        this.itineraryKey = key;
+    }
+
+    public String getKey() {
+        return this.itineraryKey;
     }
 }
