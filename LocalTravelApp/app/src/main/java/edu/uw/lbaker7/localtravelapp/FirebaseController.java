@@ -14,7 +14,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -178,11 +177,27 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
             public void onComplete(@NonNull Task<ProviderQueryResult> task) {
                 List<String> providers = task.getResult().getProviders();
                 if (task.isSuccessful() && providers != null && !providers.isEmpty()) {
-                    mUsersReference.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
+                    mUsersReference.orderByChild("email").equalTo(email).addChildEventListener(new ChildEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                             dataSnapshot.child("itineraries").child(itineraryId).child("sharedBy").getRef()
                                     .setValue(mAuth.getCurrentUser().getEmail());
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+                            dataSnapshot.child("itineraries").child(itineraryId).child("sharedBy").getRef()
+                                    .removeValue();
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
                         }
 
                         @Override

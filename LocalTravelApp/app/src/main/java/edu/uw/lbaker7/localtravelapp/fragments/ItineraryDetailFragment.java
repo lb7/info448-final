@@ -4,9 +4,13 @@ package edu.uw.lbaker7.localtravelapp.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -34,6 +38,7 @@ import java.util.List;
 import edu.uw.lbaker7.localtravelapp.PlaceItem;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.VolleySingleton;
+import edu.uw.lbaker7.localtravelapp.fragments.dialogs.ShareItineraryDialog;
 
 
 /**
@@ -101,6 +106,8 @@ public class ItineraryDetailFragment extends Fragment {
             } else {
                 Log.v(TAG, "placeIds was null");
             }
+
+            setHasOptionsMenu(true);
         }
 
         Button shareButton = (Button) rootView.findViewById(R.id.shareItineraryButton);
@@ -131,6 +138,31 @@ public class ItineraryDetailFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnCreateMapButtonSelectedListener");
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.share, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.actionShare:
+                DialogFragment shareDialog = new ShareItineraryDialog();
+
+                Bundle args = new Bundle(1);
+                // TODO: 5/30/17 replace dummy itinerary id with actual value
+                args.putString(ShareItineraryDialog.ARG_ITINERARY_ID, "-KlQJ4U-cH5HAqwOVC6p");
+
+                shareDialog.setArguments(args);
+                shareDialog.show(getFragmentManager(), "shareItineraryDialog");
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     public void getDummyObjects() {
