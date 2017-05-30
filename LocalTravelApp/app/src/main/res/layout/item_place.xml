@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:descendantFocusability="blocksDescendants">
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants">
 
         <TextView
             android:id="@+id/positionNumber"
@@ -19,7 +21,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@mipmap/ic_placeholder_icon"
-            android:padding="5sp" />
+            android:padding="5sp"
+            android:focusable="false" />
         <TextView
             android:id="@+id/placeName"
             android:layout_width="wrap_content"
@@ -33,7 +36,8 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants">
 
         <TextView
             android:id="@+id/placeAddress"
@@ -42,25 +46,37 @@
             android:textSize="20sp"
             android:paddingLeft="10sp" />
 
+        <ImageButton
+            android:id="@+id/deletePlaceButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@android:drawable/ic_delete"
+            android:visibility="invisible" />
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants">
 
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:focusable="false" />
         <ImageButton
             android:id="@+id/moveDownButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_move_down" />
+            android:src="@drawable/ic_move_down"
+            android:focusable="false" />
         <ImageButton
             android:id="@+id/moveUpButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_move_up" />
+            android:src="@drawable/ic_move_up"
+            android:focusable="false" />
     </LinearLayout>
 
 </LinearLayout>
