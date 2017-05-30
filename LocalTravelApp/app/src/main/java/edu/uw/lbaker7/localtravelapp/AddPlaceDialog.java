@@ -41,7 +41,6 @@ public class AddPlaceDialog extends DialogFragment {
 
     private static final String TAG = "ItineraryDialog";
 
-
     private List<ItineraryListItem> data;
     private ItineraryAdapter adapter;
     private static FirebaseController firebaseController;
@@ -56,6 +55,7 @@ public class AddPlaceDialog extends DialogFragment {
         fragment.setArguments(args);
         return fragment;
     }
+
 
 
 
@@ -110,34 +110,11 @@ public class AddPlaceDialog extends DialogFragment {
             }
         });
 
-
-//        itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                Log.v(TAG, "long click");
-//
-//                final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
-//                final ImageButton btnDelete = (ImageButton) view.findViewById(R.id.btn_delete_itinerary);
-//                btnDelete.setVisibility(View.VISIBLE); //show delete button
-//                btnDelete.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        data.remove(listItem);
-//                        firebaseController.deleteItinerary(itineraryKey);
-//                        adapter.notifyDataSetChanged();
-//                        btnDelete.setVisibility(View.INVISIBLE);
-//                    }
-//                });
-//                return true;
-//            }
-//        });
-
-
         itineraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 firebaseController.addPlaceToItinerary(placeItem.id,  itineraryKey);
-                Toast.makeText(getContext(),"Place added to Itineray", Toast.LENGTH_LONG);
+                Toast.makeText(getContext(),"Place added to Itinerary", Toast.LENGTH_LONG).show();
                 getDialog().dismiss();
             }
         });
@@ -238,6 +215,8 @@ public class AddPlaceDialog extends DialogFragment {
                             String newItineraryName = itineraryNameInput.getText().toString();
                             ItineraryListItem newItem = new ItineraryListItem(newItineraryName, dateString);
                             firebaseController.addItinerary(newItem);
+                            Toast.makeText(getContext(),"Place added to Itinerary", Toast.LENGTH_LONG).show();
+
                         }
                     })
                     .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {

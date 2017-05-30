@@ -269,7 +269,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&key=" + getString(R.string.google_place_key);
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
@@ -339,6 +339,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         AddPlaceDialog.newInstance(item).show(getSupportFragmentManager(),"ChooseItinerary");
 
     }
+
+
 
 
     public static class PlaceItem implements Parcelable {
