@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -20,6 +21,7 @@ import com.android.volley.toolbox.NetworkImageView;
 
 import java.util.List;
 
+import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.activitites.MapsActivity;
@@ -33,6 +35,8 @@ public class PlaceListFragment extends Fragment {
     private ImageLoader imageLoader;
 
     private OnMapButtonClickedListener mapButtonClickedCallback;
+
+
 
     public interface OnMapButtonClickedListener {
         void onMapButtonClicked();
@@ -93,6 +97,7 @@ public class PlaceListFragment extends Fragment {
             TextView placeName;
             TextView placeAddress;
             TextView rating;
+            ImageButton button;
         }
 
         public PlacesAdapter(Context context, List<MapsActivity.PlaceItem> places) {
@@ -102,7 +107,7 @@ public class PlaceListFragment extends Fragment {
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            MapsActivity.PlaceItem placeItem = getItem(position);
+            final MapsActivity.PlaceItem placeItem = getItem(position);
 
             ViewHolder holder;
             if (convertView == null) {
@@ -112,8 +117,17 @@ public class PlaceListFragment extends Fragment {
 
                 holder.placeImage = (NetworkImageView)convertView.findViewById(R.id.img_place);
                 holder.placeName = (TextView)convertView.findViewById(R.id.txt_place_name);
+
                 holder.placeAddress = (TextView)convertView.findViewById(R.id.txt_place_address);
                 holder.rating = (TextView)convertView.findViewById(R.id.txt_ratings);
+                holder.button = (ImageButton) convertView.findViewById(R.id.btn_add_place);
+                holder.button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AddPlaceDialog.newInstance(placeItem).show(getActivity().getSupportFragmentManager(),"ChooseItinerary");
+
+                    }
+                });
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder)convertView.getTag();

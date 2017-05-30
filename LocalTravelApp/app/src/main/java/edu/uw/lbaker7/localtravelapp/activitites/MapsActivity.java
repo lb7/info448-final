@@ -66,7 +66,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng last;
     private PlaceListFragment placeListFragment;
     private Menu menu;
-    private PlacesDialog placesDialog;
 
 
     @Override
@@ -117,7 +116,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onInfoWindowClick(Marker marker) {
                 PlaceItem placeItem = (PlaceItem) marker.getTag();
-               placesDialog = PlacesDialog.newInstance(placeItem);
+                PlacesDialog placesDialog = PlacesDialog.newInstance(placeItem);
 
                 placesDialog.newInstance(placeItem).show(getSupportFragmentManager(), "PlacesDialog");
             }
@@ -343,7 +342,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onItineraryChoose(PlaceItem item) {
         Log.v(TAG, "Should work");
         Log.v(TAG, getFragmentManager().toString());
-        //placesDialog.dismiss();
         AddPlaceDialog.newInstance(item).show(getSupportFragmentManager(),"ChooseItinerary");
 
     }

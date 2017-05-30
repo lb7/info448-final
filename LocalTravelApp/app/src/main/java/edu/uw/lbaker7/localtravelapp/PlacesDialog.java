@@ -42,7 +42,7 @@ public class PlacesDialog extends DialogFragment {
         try {
             itineraryCallback = (OnItineraryChooseListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement OnItinerarySelectedListener");
+            throw new ClassCastException(context.toString() + " must implement OnItineraryChooseListener");
         }
     }
     public interface OnItineraryChooseListener {
@@ -80,19 +80,6 @@ public class PlacesDialog extends DialogFragment {
         root.findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                // 1. Instantiate an AlertDialog.Builder with its constructor
-//                ItineraryListFragment itineraryList = ItineraryListFragment.newInstance();
-//                //View root = inflater.inflate(R.layout.place_list_item, null);
-////                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-////                ft.replace(R.id.container_current, itineraryList);
-////                ft.commit();
-//                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-//                builder.setView(itineraryList.getView());
-////                builder.setMessage("you got something to show up")
-////                        .setTitle("so proud");
-//
-//                AlertDialog dialog = builder.create();
-//                dialog.show();
 
                 itineraryCallback.onItineraryChoose(placeItem);
 
