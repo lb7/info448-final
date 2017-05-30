@@ -6,6 +6,7 @@ import java.util.HashMap;
 public class ItineraryListItem {
 
     public String itineraryName;
+    public String itineraryKey;
     public String dateCreated;
 
     public HashMap<String, Boolean> places;
@@ -16,6 +17,12 @@ public class ItineraryListItem {
 
     public ItineraryListItem(String name, String date) {
         this.itineraryName = name;
+        this.dateCreated = date;
+    }
+
+    public ItineraryListItem(String name, String itineraryKey, String date) {
+        this.itineraryName = name;
+        this.itineraryKey = itineraryKey;
         this.dateCreated = date;
     }
 
