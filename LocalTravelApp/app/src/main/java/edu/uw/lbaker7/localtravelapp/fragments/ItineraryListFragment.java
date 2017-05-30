@@ -98,8 +98,10 @@ public class ItineraryListFragment extends Fragment {
                 String itineraryKey = dataSnapshot.getKey();
                 String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
                 String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
+
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
                 item.setKey(itineraryKey);
+
                 data.add(item);
                 adapter.notifyDataSetChanged();
             }
