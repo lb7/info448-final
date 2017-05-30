@@ -47,8 +47,10 @@ import java.util.ArrayList;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesDialog;
+import edu.uw.lbaker7.localtravelapp.FilterItem;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
+import edu.uw.lbaker7.localtravelapp.fragments.FilterFragment;
 import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
 
@@ -56,6 +58,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
+    private ArrayList<FilterItem> placeTypeArray;
     private static final String TAG = "MapsActivity";
     private LocationRequest mLocationRequest;
     private GoogleMap mMap;
@@ -88,7 +91,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest.setFastestInterval(50000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        placeListFragment = PlaceListFragment.newInstance();
+        createFilterArray();
 
     }
 
@@ -292,7 +295,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
     public void handleFilter(View v){
-        Log.v(TAG, "you filtered");
+        FilterFragment filterFragment = FilterFragment.newInstance();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.map_container, filterFragment);
+        ft.addToBackStack("Filter Fragment");
+        ft.commit();
     }
 
     @Override
@@ -313,6 +320,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MapsActivity.this, ItineraryActivity.class));
                 return true; //handled
             case R.id.mapList:
+                placeListFragment = PlaceListFragment.newInstance();
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                 ft.replace(R.id.map_container, placeListFragment);
                 ft.commit();
@@ -407,6 +415,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return places;
     }
 
+    public ArrayList<FilterItem> getFilterList() {
+        return placeTypeArray;
+    }
+
     @Override
     public void onMapButtonClicked() {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -415,4 +427,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         MenuItem item = menu.findItem(R.id.mapList);
         item.setVisible(true);
     }
+
+    private void createFilterArray() {
+        placeTypeArray = new ArrayList<>();
+        // Array of place types that users can filter
+        placeTypeArray = new ArrayList<>();
+        placeTypeArray.add(new FilterItem("Amusement Park", true));
+        placeTypeArray.add(new FilterItem("Art Gallery", true));
+        placeTypeArray.add(new FilterItem("Aquarium", true));
+        placeTypeArray.add(new FilterItem("Bakery", true));
+        placeTypeArray.add(new FilterItem("Bar", true));
+        placeTypeArray.add(new FilterItem("Beauty Salon", true));
+        placeTypeArray.add(new FilterItem("Bowling Alley", true));
+        placeTypeArray.add(new FilterItem("Cafe", true));
+        placeTypeArray.add(new FilterItem("Clothing Store", true));
+        placeTypeArray.add(new FilterItem("Hair Care", true));
+        placeTypeArray.add(new FilterItem("Jewelry Store", true));
+        placeTypeArray.add(new FilterItem("Library", true));
+        placeTypeArray.add(new FilterItem("Meal Takeaway", true));
+        placeTypeArray.add(new FilterItem("Movie Theater", true));
+        placeTypeArray.add(new FilterItem("Museum", true));
+        placeTypeArray.add(new FilterItem("Night Club", true));
+        placeTypeArray.add(new FilterItem("Park", true));
+        placeTypeArray.add(new FilterItem("Restaurant", true));
+        placeTypeArray.add(new FilterItem("Shopping Mall", true));
+        placeTypeArray.add(new FilterItem("Spa", true));
+        placeTypeArray.add(new FilterItem("Zoo", true));
+    }
+
 }
