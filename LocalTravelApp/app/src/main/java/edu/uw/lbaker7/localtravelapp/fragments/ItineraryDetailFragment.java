@@ -128,15 +128,6 @@ public class ItineraryDetailFragment extends Fragment {
             setHasOptionsMenu(true);
         }
 
-        Button shareButton = (Button) rootView.findViewById(R.id.shareItineraryButton);
-        shareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ShareItineraryDialog shareDialog = new ShareItineraryDialog();
-                shareDialog.show(getFragmentManager(), "dialog");
-            }
-        });
-
         Button createMapButton = (Button) rootView.findViewById(R.id.createMap);
         createMapButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,8 +164,7 @@ public class ItineraryDetailFragment extends Fragment {
                 DialogFragment shareDialog = new ShareItineraryDialog();
 
                 Bundle args = new Bundle(1);
-                // TODO: 5/30/17 replace dummy itinerary id with actual value
-                args.putString(ShareItineraryDialog.ARG_ITINERARY_ID, "-KlQJ4U-cH5HAqwOVC6p");
+                args.putString(ShareItineraryDialog.ARG_ITINERARY_ID, itineraryKey);
 
                 shareDialog.setArguments(args);
                 shareDialog.show(getFragmentManager(), "shareItineraryDialog");

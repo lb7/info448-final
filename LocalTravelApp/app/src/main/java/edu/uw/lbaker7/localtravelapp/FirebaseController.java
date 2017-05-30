@@ -135,6 +135,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         if (mUser != null) {
             mItinerariesReference.orderByChild("owner").equalTo(mUser.getUid())
                     .addChildEventListener(listener);
+
+            mItinerariesReference.orderByChild("sharedTo").equalTo(mUser.getEmail())
+                .addChildEventListener(listener);
         }
     }
 
@@ -177,7 +180,11 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
             public void onComplete(@NonNull Task<ProviderQueryResult> task) {
                 List<String> providers = task.getResult().getProviders();
                 if (task.isSuccessful() && providers != null && !providers.isEmpty()) {
-                    mUsersReference.orderByChild("email").equalTo(email).addChildEventListener(new ChildEventListener() {
+                    mUsersReference
+                            .orderByChild("email")
+                            .equalTo(email)
+                            .limitToFirst(1)
+                            .addChildEventListener(new ChildEventListener() {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                             dataSnapshot.child("itineraries").child(itineraryId).child("sharedBy").getRef()
@@ -191,8 +198,7 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
-                            dataSnapshot.child("itineraries").child(itineraryId).child("sharedBy").getRef()
-                                    .removeValue();
+
                         }
 
                         @Override
@@ -205,6 +211,8 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
                         }
                     });
+
+                    mItinerariesReference.child(itineraryId).child("sharedTo").setValue(email);
                 }
             }
         });
