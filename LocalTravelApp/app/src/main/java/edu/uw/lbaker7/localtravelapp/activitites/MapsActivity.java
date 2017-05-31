@@ -102,7 +102,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 mMap.clear();
                 findViewById(R.id.btn_clear_dir).setVisibility(View.INVISIBLE);
-
+                handleSearch(null);
             }
         });
         mGoogleApiClient = new GoogleApiClient
