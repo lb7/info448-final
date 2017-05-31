@@ -8,6 +8,7 @@ public class ItineraryListItem {
     public String itineraryName;
     public String dateCreated;
     public String itineraryKey;
+    public String sharedBy;
 
     public HashMap<String, Boolean> places;
 
@@ -45,5 +46,13 @@ public class ItineraryListItem {
 
     public String getKey() {
         return this.itineraryKey;
+    }
+
+    public String getItineraryKey() {
+        return itineraryKey;
+    }
+
+    public String getSharedBy() {
+        return sharedBy;
     }
 }

@@ -113,7 +113,8 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         if (user != null) {
             DatabaseReference itineraryReference = mItinerariesReference.push();
             itineraryReference.setValue(itinerary);
-            itineraryReference.child("owner").setValue(mAuth.getCurrentUser().getUid());
+            itineraryReference.child("owner").setValue(user.getUid());
+            itineraryReference.child("ownerEmail").setValue(user.getEmail());
 
             String itineraryKey = itineraryReference.getKey();
 

@@ -125,7 +125,7 @@ public class ItineraryDetailFragment extends Fragment {
                 }
             });
         }
-            setHasOptionsMenu(true);
+        setHasOptionsMenu(true);
 
         Button createMapButton = (Button) rootView.findViewById(R.id.createMap);
         createMapButton.setOnClickListener(new View.OnClickListener() {

@@ -23,6 +23,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -102,6 +103,12 @@ public class ItineraryListFragment extends Fragment {
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
                 item.setKey(itineraryKey);
 
+                Object sharedBy = dataSnapshot.child("ownerEmail").getValue();
+                if (!dataSnapshot.child("owner").getValue().toString().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) &&
+                        sharedBy != null) {
+                    item.sharedBy = sharedBy.toString();
+                }
+
                 data.add(item);
                 adapter.notifyDataSetChanged();
             }
@@ -180,7 +187,7 @@ public class ItineraryListFragment extends Fragment {
         private class ViewHolder {
             TextView itineraryName;
             TextView date;
-
+            TextView sharedBy;
         }
 
         public ItineraryAdapter(Context context, List<ItineraryListItem> itineraryItem) {
@@ -199,6 +206,7 @@ public class ItineraryListFragment extends Fragment {
                 convertView = inflater.inflate(R.layout.itinerary_list_item, parent, false);
                 holder.itineraryName = (TextView)convertView.findViewById(R.id.itinerary_name);
                 holder.date = (TextView)convertView.findViewById(R.id.itinerary_date_created);
+                holder.sharedBy = (TextView) convertView.findViewById(R.id.itinerary_shared_text);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder)convertView.getTag();
@@ -209,6 +217,10 @@ public class ItineraryListFragment extends Fragment {
 
             //set text of date
             holder.date.setText("Date created: " + item.dateCreated);
+
+            if (item.sharedBy != null) {
+                holder.sharedBy.setText("| Shared by " + item.sharedBy);
+            }
 
             return convertView;
         }
