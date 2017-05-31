@@ -85,6 +85,7 @@ public class AddPlaceDialog extends DialogFragment {
                 String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
                 String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
+                item.itineraryKey = itineraryKey;
                 data.add(item);
                 adapter.notifyDataSetChanged();
             }
@@ -113,7 +114,7 @@ public class AddPlaceDialog extends DialogFragment {
         itineraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                firebaseController.addPlaceToItinerary(placeItem.id,  itineraryKey);
+                firebaseController.addPlaceToItinerary(placeItem.id,  data.get(position).itineraryKey);
                 Toast.makeText(getContext(),"Place added to Itinerary", Toast.LENGTH_LONG).show();
                 getDialog().dismiss();
             }
@@ -124,7 +125,7 @@ public class AddPlaceDialog extends DialogFragment {
         btnCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment dialog = NewItineraryDialog.newInstance();
+                DialogFragment dialog = NewItineraryDialog.newInstance(placeItem.id);
                 dialog.show(getFragmentManager(), "new itinerary dialog");
             }
         });
@@ -185,7 +186,7 @@ public class AddPlaceDialog extends DialogFragment {
     }
 
     public static class NewItineraryDialog extends DialogFragment {
-
+        private String placeKey;
         public static NewItineraryDialog newInstance() {
 
             Bundle args = new Bundle();
@@ -194,10 +195,19 @@ public class AddPlaceDialog extends DialogFragment {
             fragment.setArguments(args);
             return fragment;
         }
+        public static NewItineraryDialog newInstance(String key) {
 
+            Bundle args = new Bundle();
+
+            NewItineraryDialog fragment = new NewItineraryDialog();
+            args.putString("PlaceId", key);
+            fragment.setArguments(args);
+            return fragment;
+        }
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
+            placeKey = getArguments().getString("PlaceId");
 
             final EditText itineraryNameInput = new EditText(getContext());
             itineraryNameInput.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -214,7 +224,8 @@ public class AddPlaceDialog extends DialogFragment {
                             String dateString = sdf.format(date);
                             String newItineraryName = itineraryNameInput.getText().toString();
                             ItineraryListItem newItem = new ItineraryListItem(newItineraryName, dateString);
-                            firebaseController.addItinerary(newItem);
+                            String ItID = firebaseController.addItinerary(newItem);
+                            firebaseController.addPlaceToItinerary(placeKey,  ItID);
                             Toast.makeText(getContext(),"Place added to Itinerary", Toast.LENGTH_LONG).show();
 
                         }

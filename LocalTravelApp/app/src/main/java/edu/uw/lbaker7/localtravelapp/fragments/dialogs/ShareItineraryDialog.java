@@ -9,15 +9,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
+import edu.uw.lbaker7.localtravelapp.FirebaseController;
 import edu.uw.lbaker7.localtravelapp.R;
 
 import static android.content.ContentValues.TAG;
 
-/**
- * Created by Ryan Magee on 5/26/2017.
- */
-
 public class ShareItineraryDialog extends DialogFragment {
+
+    public static final String ARG_ITINERARY_ID = "ItineraryId";
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -30,7 +30,13 @@ public class ShareItineraryDialog extends DialogFragment {
                         TextView emailView = (TextView) ((Dialog)dialog).findViewById(R.id.enterEmail);
                         String email = emailView.getText().toString();
                         Log.v(TAG, "email entered: " + email);
-                        //share itinerary through firebase
+
+                        Bundle args = getArguments();
+                        if (args != null) {
+                            String itineraryId = args.getString(ARG_ITINERARY_ID, "");
+                            FirebaseController.getInstance().shareItineraryToUser(itineraryId, email);
+                        }
+
                         dialog.dismiss();
                     }
                 })
