@@ -79,6 +79,7 @@ public class PlaceItem implements Parcelable {
         this.address = address;
     }
     public static PlaceItem parseObjectFromJson(JSONObject response) {
+        Log.v(TAG, response.toString());
         PlaceItem place;
         try {
             JSONObject result = response.getJSONObject("result");

@@ -10,8 +10,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.ProviderQueryResult;
 import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.List;
 
 public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
@@ -64,7 +68,8 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
                 .addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
             @Override
             public void onComplete(@NonNull Task<ProviderQueryResult> task) {
-                if (task.isSuccessful() && task.getResult().getProviders().size() > 0) {
+                List<String> providers = task.getResult().getProviders();
+                if (task.isSuccessful() && providers != null && !providers.isEmpty()) {
                     //Email is available
                     signIn(email, password, listener);
                 } else {
@@ -130,6 +135,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         if (mUser != null) {
             mItinerariesReference.orderByChild("owner").equalTo(mUser.getUid())
                     .addChildEventListener(listener);
+
+            mItinerariesReference.orderByChild("sharedTo").equalTo(mUser.getEmail())
+                .addChildEventListener(listener);
         }
     }
 
@@ -164,6 +172,50 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
      */
     public void deletePlaceFromItinerary(String placeId, String itineraryId) {
         mItinerariesReference.child(itineraryId).child("places").child(placeId).removeValue();
+    }
+
+    public void shareItineraryToUser(final String itineraryId, final String email) {
+        mAuth.fetchProvidersForEmail(email).addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
+            @Override
+            public void onComplete(@NonNull Task<ProviderQueryResult> task) {
+                List<String> providers = task.getResult().getProviders();
+                if (task.isSuccessful() && providers != null && !providers.isEmpty()) {
+                    mUsersReference
+                            .orderByChild("email")
+                            .equalTo(email)
+                            .limitToFirst(1)
+                            .addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            dataSnapshot.child("itineraries").child(itineraryId).child("sharedBy").getRef()
+                                    .setValue(mAuth.getCurrentUser().getEmail());
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                    mItinerariesReference.child(itineraryId).child("sharedTo").setValue(email);
+                }
+            }
+        });
     }
 
 
