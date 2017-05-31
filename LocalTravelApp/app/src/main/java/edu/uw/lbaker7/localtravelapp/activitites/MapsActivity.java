@@ -125,10 +125,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if(stuff.size() >0){
             String waypoint = "";
+
             for (int i = 0; i< stuff.size()-1; i++){
                 waypoint += "place_id:"+stuff.get(i).id +"|";
+                Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(i).coordinates).title(stuff.get(i).placeName).snippet("Click to see more!"));
+                marker.setTag(stuff.get(i));
             }
-            String url="https://maps.googleapis.com/maps/api/directions/json?origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
+            Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(stuff.size()-1).coordinates).title(stuff.get(stuff.size()-1).placeName).snippet("Click to see more!"));
+            marker.setTag(stuff.get(stuff.size()-1));
+            String url="https://maps.googleapis.com/maps/api/directions/json?mode=walking&origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                         //handling response
@@ -263,7 +268,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
             last = new LatLng(location.getLatitude(), location.getLongitude());
             if(stuff.size() == 0){
-                Log.v(TAG, "the fuck");
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
             }
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -318,11 +322,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     places.add(place);
                     Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
                     marker.setTag(place);
-
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
-
-                    Log.v(TAG, ltlg.toString());
-
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(places.get(i).coordinates));
 
                 }
             } catch (JSONException e) {
@@ -331,14 +331,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
     public void handleSearch(View v){
+        stuff = new ArrayList<>();
         EditText editText = (EditText) findViewById(R.id.search);
         String search = URLEncoder.encode(editText.getText().toString());
         Log.v(TAG, search);
 
 
         String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500";
-
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&key=" + getString(R.string.google_place_key);
+        Log.v(TAG, url);
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                     //handling response
