@@ -20,6 +20,12 @@ public class ItineraryListItem {
         this.dateCreated = date;
     }
 
+    public ItineraryListItem(String name, String itineraryKey, String date) {
+        this.itineraryName = name;
+        this.itineraryKey = itineraryKey;
+        this.dateCreated = date;
+    }
+
     //Getters needed by firebase
     public String getItineraryName() {
         return itineraryName;

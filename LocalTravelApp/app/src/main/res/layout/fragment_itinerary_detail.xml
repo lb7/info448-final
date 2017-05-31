@@ -16,14 +16,6 @@
             android:text="Itinerary"
             android:textSize="40sp"
             android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/shareItineraryButton"/>
-
-        <Button
-            android:id="@+id/shareItineraryButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Share"
-            android:textSize="20sp"
             android:layout_toLeftOf="@+id/createMap"/>
 
         <Button

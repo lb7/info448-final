@@ -31,4 +31,6 @@
         <item>Spa</item>
         <item>Zoo</item>
     </string-array>
+
+    <string name="share">Share</string>
 </resources>

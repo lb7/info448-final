@@ -4,9 +4,13 @@ package edu.uw.lbaker7.localtravelapp.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -16,7 +20,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,15 +28,20 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.uw.lbaker7.localtravelapp.FirebaseController;
 import edu.uw.lbaker7.localtravelapp.PlaceItem;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.VolleySingleton;
+import edu.uw.lbaker7.localtravelapp.fragments.dialogs.ShareItineraryDialog;
 
 
 /**
@@ -43,10 +51,16 @@ public class ItineraryDetailFragment extends Fragment {
 
     private static final String TAG = "ItineraryDetailFragment";
 
+    public static final String ITINERARY_ID_KEY = "itineraryKey";
     public static final String ITINERARY_NAME_KEY = "itineraryName";
+
+    private static FirebaseController firebaseController;
 
     private OnCreateMapButtonSelectedListener createMapCallback;
 
+    private String itineraryKey;
+
+    private ArrayList<String> placeIds;
     private ArrayList<PlaceItem> places;
     private ArrayAdapter<PlaceItem> adapter;
 
@@ -59,10 +73,11 @@ public class ItineraryDetailFragment extends Fragment {
         void onCreateMapButtonSelected(List<PlaceItem> places);
     }
 
-    public static ItineraryDetailFragment newInstance(String itineraryName) {
+    public static ItineraryDetailFragment newInstance(String itineraryName, String itineraryKey) {
         ItineraryDetailFragment fragment = new ItineraryDetailFragment();
         Bundle args = new Bundle();
         args.putString(ITINERARY_NAME_KEY, itineraryName);
+        args.putString(ITINERARY_ID_KEY, itineraryKey);
         fragment.setArguments(args);
         return fragment;
     }
@@ -71,45 +86,46 @@ public class ItineraryDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_itinerary_detail, container, false);
+        firebaseController = FirebaseController.getInstance();
 
         if (getArguments() != null) {
+            itineraryKey = getArguments().getString(ITINERARY_ID_KEY);
+            Log.v(TAG, itineraryKey);
             String itineraryName = getArguments().getString(ITINERARY_NAME_KEY);
             TextView name = (TextView) rootView.findViewById(R.id.itineraryName);
             name.setText(itineraryName);
-            ArrayList<String> placeIds = getPlaceIds();
-            if (placeIds != null) {
-                places = getPlacesFromId(placeIds);
 
-                ArrayList<PlaceItem> placesArrayList = new ArrayList<PlaceItem>();
+            places = new ArrayList<PlaceItem>();
 
-                adapter = new PlaceItemAdapter(getActivity(), placesArrayList);
+            ArrayList<PlaceItem> arrayOfPlaceItems = new ArrayList<PlaceItem>();
 
-                getDummyObjects(); //dummy data
+            placeIds = getPlaceIds();
+            Log.v(TAG, "PlaceIds: " + placeIds.toString());
 
-                ListView listView = (ListView) rootView.findViewById(R.id.placeItems);
-                listView.setAdapter(adapter);
+            adapter = new PlaceItemAdapter(getActivity(), arrayOfPlaceItems);
 
-                listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                        PlaceItem place = (PlaceItem) parent.getItemAtPosition(position);
-                        Log.v(TAG, "deleting item");
-                        Toast.makeText(getActivity(), "Would you like to delete Dialog", Toast.LENGTH_SHORT).show();
-                        return true;
+            //getDummyObjects(); //dummy data
+
+            ListView listView = (ListView) rootView.findViewById(R.id.placeItems);
+            listView.setAdapter(adapter);
+
+            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    Log.v(TAG, "showing delete button");
+
+                    //show red x button
+                    ImageButton deleteButton = (ImageButton) view.findViewById(R.id.deletePlaceButton);
+                    if (deleteButton.getVisibility() == View.INVISIBLE) {
+                        deleteButton.setVisibility(View.VISIBLE);
+                    } else {
+                        deleteButton.setVisibility(View.INVISIBLE);
                     }
-                });
-            } else {
-                Log.v(TAG, "placeIds was null");
-            }
+                    return true;
+                }
+            });
         }
-
-        Button shareButton = (Button) rootView.findViewById(R.id.shareItineraryButton);
-        shareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //show share itinerary dialog
-            }
-        });
+            setHasOptionsMenu(true);
 
         Button createMapButton = (Button) rootView.findViewById(R.id.createMap);
         createMapButton.setOnClickListener(new View.OnClickListener() {
@@ -131,6 +147,30 @@ public class ItineraryDetailFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement OnCreateMapButtonSelectedListener");
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.share, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.actionShare:
+                DialogFragment shareDialog = new ShareItineraryDialog();
+
+                Bundle args = new Bundle(1);
+                args.putString(ShareItineraryDialog.ARG_ITINERARY_ID, itineraryKey);
+
+                shareDialog.setArguments(args);
+                shareDialog.show(getFragmentManager(), "shareItineraryDialog");
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     public void getDummyObjects() {
@@ -169,6 +209,7 @@ public class ItineraryDetailFragment extends Fragment {
 
                 ImageButton moveDownButton = (ImageButton) convertView.findViewById(R.id.moveDownButton);
                 ImageButton moveUpButton = (ImageButton) convertView.findViewById(R.id.moveUpButton);
+                final ImageButton deleteButton = (ImageButton) convertView.findViewById(R.id.deletePlaceButton);
 
                 moveDownButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -198,6 +239,21 @@ public class ItineraryDetailFragment extends Fragment {
                     }
                 });
 
+                deleteButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PlaceItem placeToDelete = adapter.getItem(position);
+                        adapter.remove(placeToDelete);
+                        deleteButton.setVisibility(View.INVISIBLE);
+
+                        Log.v(TAG, "I'm deleting this objectID: " + placeIds.get(position));
+
+                        firebaseController.deletePlaceFromItinerary(placeIds.get(position), itineraryKey);
+
+                        placeIds.remove(position);
+                    }
+                });
+
                 fetchPlaceIcon(data.icon, placeIconView);
 
                 positionNumberView.setText(Integer.toString(position + 1));
@@ -213,29 +269,26 @@ public class ItineraryDetailFragment extends Fragment {
         loader.get(url, ImageLoader.getImageListener(placeIconView, 0, 0));
     }
 
-    private ArrayList<PlaceItem> getPlacesFromId(ArrayList<String> placeIds) {
-
-        final ArrayList<PlaceItem> placeList = new ArrayList<PlaceItem>();
-
+    private void getPlaceFromId(String placeId) {
         //https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM
 
         RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
 
-        for (String currentPlaceId : placeIds) {
-            String urlString = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
-            urlString += currentPlaceId;
-            urlString += "&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
+        String urlString = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
+        urlString += placeId;
+        urlString += "&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
 
-            Log.v(TAG, "current url: " + urlString);
+        Log.v(TAG, "current url: " + urlString);
 
-            //RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
+        //RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
 
-            JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, urlString, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, urlString, null,
+                new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     PlaceItem place = PlaceItem.parseObjectFromJson(response);
                     adapter.add(place);
-                    placeList.add(place);
+                    places.add(place);
                 }
             }, new Response.ErrorListener() {
                 public void onErrorResponse(VolleyError error) {
@@ -243,8 +296,6 @@ public class ItineraryDetailFragment extends Fragment {
                 }
             });
             queue.add(jsonRequest);
-        }
-        return placeList;
     }
 
     private void onCreateMap(ArrayList<PlaceItem> places) {
@@ -252,37 +303,42 @@ public class ItineraryDetailFragment extends Fragment {
     }
 
     private ArrayList<String> getPlaceIds() {
-        /*ChildEventListener listener = new ChildEventListener() {
+
+        final ArrayList<String> placeIdsToReturn = new ArrayList<String>();
+        Log.v(TAG, "getting places from firebase");
+
+        firebaseController.getPlacesFromItinerary(itineraryKey, new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
+                Log.v(TAG, dataSnapshot.toString());
+                getPlaceFromId(dataSnapshot.getKey());
+                placeIdsToReturn.add(dataSnapshot.getKey());
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                adapter.notifyDataSetChanged();
             }
-        };
-        FirebaseController.getPlacesFromItinerary(itineraryId, listener);*/
+        });
 
-        ArrayList<String> returnArray = new ArrayList<String>();
-        returnArray.add("ChIJN1t_tDeuEmsRUsoyG83frY4");
-        return returnArray;
+        Log.v(TAG, placeIdsToReturn.toString());
+        return placeIdsToReturn;
     }
 
 }

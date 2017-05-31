@@ -29,7 +29,8 @@ public class ItineraryActivity extends BaseActivity implements ItineraryListFrag
     @Override
     public void onItinerarySelected(ItineraryListItem item) {
         String itineraryName = item.itineraryName;
-        ItineraryDetailFragment itineraryDetailFragment = ItineraryDetailFragment.newInstance(itineraryName);
+        String itineraryKey = item.itineraryKey;
+        ItineraryDetailFragment itineraryDetailFragment = ItineraryDetailFragment.newInstance(itineraryName, itineraryKey);
         FragmentTransaction ft  = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.itinerary_list_container, itineraryDetailFragment, "ItineraryDetailFragment");
         ft.addToBackStack(null);

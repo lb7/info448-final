@@ -31,6 +31,7 @@ public class PlaceItem {
     }
 
     public static PlaceItem parseObjectFromJson(JSONObject response) {
+        Log.v(TAG, response.toString());
         PlaceItem place;
         try {
             JSONObject result = response.getJSONObject("result");

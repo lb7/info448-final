@@ -1,5 +1,4 @@
-package edu.uw.lbaker7.localtravelapp.fragments;
-
+package edu.uw.lbaker7.localtravelapp;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,7 +8,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,9 +17,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -32,58 +30,46 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import edu.uw.lbaker7.localtravelapp.FirebaseController;
-import edu.uw.lbaker7.localtravelapp.ItineraryListItem;
-import edu.uw.lbaker7.localtravelapp.R;
-
+import edu.uw.lbaker7.localtravelapp.activitites.MapsActivity;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Created by Christa Joy Jaeger on 5/26/2017.
  */
-public class ItineraryListFragment extends Fragment {
-    
-    private static final String TAG = "ItineraryListFragemnt";
 
-    private OnItinerarySelectedListener itinerarySelectedCallback;
+public class AddPlaceDialog extends DialogFragment {
+    private MapsActivity.PlaceItem placeItem;
+
+    private static final String TAG = "ItineraryDialog";
 
     private List<ItineraryListItem> data;
     private ItineraryAdapter adapter;
     private static FirebaseController firebaseController;
-
-    public interface OnItinerarySelectedListener {
-        void onItinerarySelected(ItineraryListItem item);
-    }
+    private String itineraryKey;
 
 
-    public ItineraryListFragment() {
-        // Required empty public constructor
-    }
-
-    public static ItineraryListFragment newInstance() {
-        
+    public static AddPlaceDialog newInstance(MapsActivity.PlaceItem place) {
         Bundle args = new Bundle();
-        ItineraryListFragment fragment = new ItineraryListFragment();
+        AddPlaceDialog fragment = new AddPlaceDialog();
+        Log.v(TAG, place.placeName);
+        args.putParcelable("Place", place);
         fragment.setArguments(args);
         return fragment;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
 
-        try {
-            itinerarySelectedCallback = (OnItinerarySelectedListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement OnItinerarySelectedListener");
-        }
-    }
+
+
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog builderSent;
+        // Get the layout inflater
+        final LayoutInflater inflater = getActivity().getLayoutInflater();
+        placeItem = getArguments().getParcelable("Place");
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_itinerary_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_itinerary_list, null);
+
         final ListView itineraryListView = (ListView)rootView.findViewById(R.id.itinerary_list);
         data = new ArrayList<>();
         adapter = new ItineraryAdapter(getActivity(), data);
@@ -95,13 +81,11 @@ public class ItineraryListFragment extends Fragment {
         firebaseController.getItineraries(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String itineraryKey = dataSnapshot.getKey();
+                itineraryKey = dataSnapshot.getKey();
                 String itineraryName = dataSnapshot.child("itineraryName").getValue().toString();
                 String dateCreated = dataSnapshot.child("dateCreated").getValue().toString();
-
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
-                item.setKey(itineraryKey);
-
+                item.itineraryKey = itineraryKey;
                 data.add(item);
                 adapter.notifyDataSetChanged();
             }
@@ -127,40 +111,12 @@ public class ItineraryListFragment extends Fragment {
             }
         });
 
-
-        itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                Log.v(TAG, "long click");
-
-                final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
-                final ImageButton btnDelete = (ImageButton)view.findViewById(R.id.btn_delete_itinerary);
-                if (btnDelete.getVisibility() == View.INVISIBLE) {
-                    btnDelete.setVisibility(View.VISIBLE);
-                    btnDelete.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            data.remove(position);
-                            firebaseController.deleteItinerary(listItem.getKey());
-                            adapter.notifyDataSetChanged();
-                            btnDelete.setVisibility(View.INVISIBLE);
-                        }
-                    });
-                } else {
-                    btnDelete.setVisibility(View.INVISIBLE);
-                }
-
-                return true;
-            }
-        });
-
-
         itineraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.v(TAG, "on item click");
-                ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
-                itinerarySelectedCallback.onItinerarySelected(listItem);
+                firebaseController.addPlaceToItinerary(placeItem.id,  data.get(position).itineraryKey);
+                Toast.makeText(getContext(),"Place added to Itinerary", Toast.LENGTH_LONG).show();
+                getDialog().dismiss();
             }
         });
 
@@ -169,12 +125,23 @@ public class ItineraryListFragment extends Fragment {
         btnCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment dialog = NewItineraryDialog.newInstance();
+                DialogFragment dialog = NewItineraryDialog.newInstance(placeItem.id);
                 dialog.show(getFragmentManager(), "new itinerary dialog");
             }
         });
+        builder.setView(rootView).setPositiveButton("Done", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // sign in the user ...
+            }
+        })
+        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                //LoginDialogFragment.this.getDialog().cancel();
+            }
+        });
 
-        return rootView;
+        return builder.create();
 
     }
 
@@ -185,7 +152,6 @@ public class ItineraryListFragment extends Fragment {
         private class ViewHolder {
             TextView itineraryName;
             TextView date;
-
         }
 
         public ItineraryAdapter(Context context, List<ItineraryListItem> itineraryItem) {
@@ -219,9 +185,8 @@ public class ItineraryListFragment extends Fragment {
         }
     }
 
-    //Dialog for creating a new itinerary
     public static class NewItineraryDialog extends DialogFragment {
-
+        private String placeKey;
         public static NewItineraryDialog newInstance() {
 
             Bundle args = new Bundle();
@@ -230,10 +195,19 @@ public class ItineraryListFragment extends Fragment {
             fragment.setArguments(args);
             return fragment;
         }
+        public static NewItineraryDialog newInstance(String key) {
 
+            Bundle args = new Bundle();
+
+            NewItineraryDialog fragment = new NewItineraryDialog();
+            args.putString("PlaceId", key);
+            fragment.setArguments(args);
+            return fragment;
+        }
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
+            placeKey = getArguments().getString("PlaceId");
 
             final EditText itineraryNameInput = new EditText(getContext());
             itineraryNameInput.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -250,7 +224,10 @@ public class ItineraryListFragment extends Fragment {
                             String dateString = sdf.format(date);
                             String newItineraryName = itineraryNameInput.getText().toString();
                             ItineraryListItem newItem = new ItineraryListItem(newItineraryName, dateString);
-                            firebaseController.addItinerary(newItem);
+                            String ItID = firebaseController.addItinerary(newItem);
+                            firebaseController.addPlaceToItinerary(placeKey,  ItID);
+                            Toast.makeText(getContext(),"Place added to Itinerary", Toast.LENGTH_LONG).show();
+
                         }
                     })
                     .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
