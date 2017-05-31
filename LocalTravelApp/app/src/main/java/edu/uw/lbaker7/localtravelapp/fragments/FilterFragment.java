@@ -2,6 +2,7 @@ package edu.uw.lbaker7.localtravelapp.fragments;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,8 +30,16 @@ public class FilterFragment extends Fragment {
     
     private static final String TAG = "FilterFragment";
 
+    private OnFilterButtonClickedListener filterButtonClickedCallback;
+
     private ArrayList<FilterItem> list;
     private ArrayAdapter<FilterItem> adapter;
+    private SharedPreferences sharedPref;
+    private SharedPreferences.Editor editor;
+
+    public interface OnFilterButtonClickedListener {
+        void onFilterButtonClicked();
+    }
 
 
     public FilterFragment() {
@@ -45,6 +55,17 @@ public class FilterFragment extends Fragment {
         return fragment;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        try {
+            filterButtonClickedCallback = (OnFilterButtonClickedListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement OnFilterButtonClickedListener");
+        }
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,6 +76,18 @@ public class FilterFragment extends Fragment {
         list = ((MapsActivity)getActivity()).getFilterList();
         adapter = new FilterAdapter(getContext(), list);
         filterList.setAdapter(adapter);
+
+        sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+
+        Button btnFilter = (Button) rootView.findViewById(R.id.btn_apply_filter);
+        btnFilter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                filterButtonClickedCallback.onFilterButtonClicked();
+            }
+        });
+
         return rootView;
     }
 
@@ -72,7 +105,7 @@ public class FilterFragment extends Fragment {
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            FilterItem item = getItem(position);
+            final FilterItem item = getItem(position);
 
             final ViewHolder holder;
             if (convertView == null) {
@@ -87,8 +120,9 @@ public class FilterFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         CheckBox cb = (CheckBox) v;
-                        FilterItem filterItem = (FilterItem) cb.getTag();
-                        filterItem.setSelected(cb.isChecked());
+                        item.setSelected(cb.isChecked());
+                        editor.putBoolean(item.type, cb.isChecked());
+                        editor.commit();
                     }
                 });
             } else {

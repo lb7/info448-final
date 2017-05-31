@@ -1,7 +1,9 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -42,6 +44,7 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.FilterItem;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
@@ -49,7 +52,7 @@ import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.fragments.FilterFragment;
 import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener, FilterFragment.OnFilterButtonClickedListener {
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
     private ArrayList<FilterItem> placeTypeArray;
@@ -59,7 +62,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleApiClient mGoogleApiClient;
     private LatLng last;
     private PlaceListFragment placeListFragment;
+    private FilterFragment filterFragment;
     private Menu menu;
+    private String[] placeTypes;
+    private String types;
 
 
     @Override
@@ -84,8 +90,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest.setFastestInterval(50000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
+        placeTypes = getResources().getStringArray(R.array.place_types);
         createFilterArray();
-
     }
 
 
@@ -190,29 +196,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         if(location != null){
-            String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
-            String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
-            last = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
-            JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                    (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
-                        //handling response
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            setRecent(response);//calling function to present data
-                        }
-                    }, new Response.ErrorListener() {
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.v(TAG, "There was an error:" + error);
-                        }
-                    });
-
-            // Adding the request to the PlacesRequestQueue
-            PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
+            getPlacesNearby(location);
         }
-
     }
     /*
    [{"geometry":{
@@ -260,8 +245,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         String search = URLEncoder.encode(editText.getText().toString());
         Log.v(TAG, search);
 
-
-        String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
         String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&key=" + getString(R.string.google_place_key);
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -285,7 +268,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
     public void handleFilter(View v){
-        FilterFragment filterFragment = FilterFragment.newInstance();
+        filterFragment = FilterFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.map_container, filterFragment);
         ft.addToBackStack("Filter Fragment");
@@ -327,6 +310,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onFilterButtonClicked() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.remove(filterFragment);
+        ft.commit();
+        //getPlacesNearby();
     }
 
 
@@ -373,30 +364,53 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void createFilterArray() {
+
         placeTypeArray = new ArrayList<>();
-        // Array of place types that users can filter
-        placeTypeArray = new ArrayList<>();
-        placeTypeArray.add(new FilterItem("Amusement Park", true));
-        placeTypeArray.add(new FilterItem("Art Gallery", true));
-        placeTypeArray.add(new FilterItem("Aquarium", true));
-        placeTypeArray.add(new FilterItem("Bakery", true));
-        placeTypeArray.add(new FilterItem("Bar", true));
-        placeTypeArray.add(new FilterItem("Beauty Salon", true));
-        placeTypeArray.add(new FilterItem("Bowling Alley", true));
-        placeTypeArray.add(new FilterItem("Cafe", true));
-        placeTypeArray.add(new FilterItem("Clothing Store", true));
-        placeTypeArray.add(new FilterItem("Hair Care", true));
-        placeTypeArray.add(new FilterItem("Jewelry Store", true));
-        placeTypeArray.add(new FilterItem("Library", true));
-        placeTypeArray.add(new FilterItem("Meal Takeaway", true));
-        placeTypeArray.add(new FilterItem("Movie Theater", true));
-        placeTypeArray.add(new FilterItem("Museum", true));
-        placeTypeArray.add(new FilterItem("Night Club", true));
-        placeTypeArray.add(new FilterItem("Park", true));
-        placeTypeArray.add(new FilterItem("Restaurant", true));
-        placeTypeArray.add(new FilterItem("Shopping Mall", true));
-        placeTypeArray.add(new FilterItem("Spa", true));
-        placeTypeArray.add(new FilterItem("Zoo", true));
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        for (String s : placeTypes) {
+            boolean isChecked = sharedPref.getBoolean(s, true);
+            Log.v(TAG, s + " " + isChecked);
+            placeTypeArray.add(new FilterItem(s, isChecked));
+        }
+    }
+
+    private void getPlacesNearby(Location location) {
+        // get all place types that are checked
+        List<String> filterStrings = new ArrayList<>();
+        for (FilterItem item: placeTypeArray) {
+            if(item.isSelected) {
+                filterStrings.add(item.getType());
+            }
+        }
+
+        types = "";
+        for (int i = 0; i < filterStrings.size() - 1; i++) {
+            types += filterStrings.get(i).toLowerCase().replace(" ", "_") + "|";
+        }
+        types += filterStrings.get(filterStrings.size() - 1).toLowerCase().replace(" ", "_");
+        Log.v(TAG, "types =" + types);
+
+        // String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
+        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+        last = new LatLng(location.getLatitude(), location.getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
+                    //handling response
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        setRecent(response);//calling function to present data
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.v(TAG, "There was an error:" + error);
+                    }
+                });
+
+        // Adding the request to the PlacesRequestQueue
+        PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
     }
 
 }
