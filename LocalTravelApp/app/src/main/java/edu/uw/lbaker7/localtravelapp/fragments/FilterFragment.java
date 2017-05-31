@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +39,7 @@ public class FilterFragment extends Fragment {
     private SharedPreferences.Editor editor;
 
     public interface OnFilterButtonClickedListener {
-        void onFilterButtonClicked();
+        void onApplyFilterButtonClicked();
     }
 
 
@@ -84,7 +85,7 @@ public class FilterFragment extends Fragment {
         btnFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                filterButtonClickedCallback.onFilterButtonClicked();
+                filterButtonClickedCallback.onApplyFilterButtonClicked();
             }
         });
 
@@ -120,9 +121,11 @@ public class FilterFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         CheckBox cb = (CheckBox) v;
-                        item.setSelected(cb.isChecked());
-                        editor.putBoolean(item.type, cb.isChecked());
+                        FilterItem filterItem = (FilterItem) cb.getTag();
+                        filterItem.setSelected(cb.isChecked());
+                        editor.putBoolean(filterItem.type, cb.isChecked());
                         editor.commit();
+                        Log.v(TAG, filterItem.type);
                     }
                 });
             } else {

@@ -21,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -49,8 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
-import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.FilterItem;
+import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.fragments.FilterFragment;
@@ -71,15 +72,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FilterFragment filterFragment;
     private Menu menu;
     private String[] placeTypes;
-    private String types;
-
+    private SupportMapFragment mapFragment;
+    private View controls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -98,6 +99,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         placeTypes = getResources().getStringArray(R.array.place_types);
         createFilterArray();
+
+        EditText editText = (EditText) findViewById(R.id.search);
+        final String search = URLEncoder.encode(editText.getText().toString());
+        Log.v(TAG, search);
+
+        ImageButton searchButton = (ImageButton) findViewById(R.id.btn_search);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleSearch(search);
+            }
+        });
+
+        controls = findViewById(R.id.controls_container);
     }
 
 
@@ -205,7 +220,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         if(location != null){
-            getPlacesNearby(location);
+
+            String types = buildTypeString();
+            Log.v(TAG, "onLocationChanged types= " + types);
+
+            String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+            Log.v(TAG, "url on location changed = " + url);
+            last = new LatLng(location.getLatitude(), location.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
+                        //handling response
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            setRecent(response);//calling function to present data
+                        }
+                    }, new Response.ErrorListener() {
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.v(TAG, "There was an error:" + error);
+                        }
+                    });
+
+            // Adding the request to the PlacesRequestQueue
+            PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
         }
     }
     /*
@@ -214,6 +253,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
      */
     public void setRecent(JSONObject response){
+        Log.v(TAG, "set recent response= " + response.toString());
         mMap.clear();
         try {
             JSONArray jsonResults = response.getJSONArray("results"); //response.results
@@ -249,15 +289,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.v(TAG, e.toString());
         }
     }
-    public void handleSearch(View v){
-        EditText editText = (EditText) findViewById(R.id.search);
-        String search = URLEncoder.encode(editText.getText().toString());
-        Log.v(TAG, search);
 
+    public void handleSearch(String search){
+        String url = "";
+        String types = buildTypeString();
+        Log.v(TAG, "handle search types = " + types);
+        if (search != null) {
+            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+        } else {
+            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + last.latitude + "," + last.longitude + "&radius=500&type=" + types + "&key=" + getString(R.string.google_place_key);
+        }
+        Log.v(TAG, "url on handle search = " + url);
 
-
-        String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
@@ -280,9 +323,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
     public void handleFilter(View v){
+        createFilterArray();
+        controls.setVisibility(View.INVISIBLE);
         filterFragment = FilterFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.map_container, filterFragment);
+        ft.replace(R.id.map, filterFragment);
         ft.addToBackStack("Filter Fragment");
         ft.commit();
     }
@@ -307,9 +352,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.mapList:
                 placeListFragment = PlaceListFragment.newInstance();
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.map_container, placeListFragment);
+                ft.replace(R.id.map, placeListFragment);
+                ft.addToBackStack(null);
                 ft.commit();
                 item.setVisible(false);
+                controls.setVisibility(View.INVISIBLE);
                 return true; //handled
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -326,11 +373,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
 
-    public void onFilterButtonClicked() {
+    public void onApplyFilterButtonClicked() {
+        controls.setVisibility(View.VISIBLE);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.remove(filterFragment);
+        ft.replace(R.id.map, mapFragment);
         ft.commit();
-        //getPlacesNearby();
+        handleSearch(null);
     }
 
     public void onItineraryChoose(PlaceItem item) {
@@ -411,8 +459,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapButtonClicked() {
+        controls.setVisibility(View.VISIBLE);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.remove(placeListFragment);
+        ft.replace(R.id.map, mapFragment);
         ft.commit();
         MenuItem item = menu.findItem(R.id.mapList);
         item.setVisible(true);
@@ -429,7 +478,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void getPlacesNearby(Location location) {
+    private String buildTypeString() {
         // get all place types that are checked
         List<String> filterStrings = new ArrayList<>();
         for (FilterItem item: placeTypeArray) {
@@ -438,34 +487,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
-        types = "";
+        String types = "";
         for (int i = 0; i < filterStrings.size() - 1; i++) {
             types += filterStrings.get(i).toLowerCase().replace(" ", "_") + "|";
         }
         types += filterStrings.get(filterStrings.size() - 1).toLowerCase().replace(" ", "_");
         Log.v(TAG, "types =" + types);
 
-        // String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
-        last = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
-                    //handling response
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        setRecent(response);//calling function to present data
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.v(TAG, "There was an error:" + error);
-                    }
-                });
-
-        // Adding the request to the PlacesRequestQueue
-        PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
+        return types;
     }
 
 }
