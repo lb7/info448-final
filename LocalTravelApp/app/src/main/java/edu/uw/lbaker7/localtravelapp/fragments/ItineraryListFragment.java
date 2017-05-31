@@ -135,16 +135,21 @@ public class ItineraryListFragment extends Fragment {
 
                 final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
                 final ImageButton btnDelete = (ImageButton)view.findViewById(R.id.btn_delete_itinerary);
-                btnDelete.setVisibility(View.VISIBLE); //show delete button
-                btnDelete.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        data.remove(position);
-                        firebaseController.deleteItinerary(listItem.getKey());
-                        adapter.notifyDataSetChanged();
-                        btnDelete.setVisibility(View.INVISIBLE);
-                    }
-                });
+                if (btnDelete.getVisibility() == View.INVISIBLE) {
+                    btnDelete.setVisibility(View.VISIBLE);
+                    btnDelete.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            data.remove(position);
+                            firebaseController.deleteItinerary(listItem.getKey());
+                            adapter.notifyDataSetChanged();
+                            btnDelete.setVisibility(View.INVISIBLE);
+                        }
+                    });
+                } else {
+                    btnDelete.setVisibility(View.INVISIBLE);
+                }
+
                 return true;
             }
         });
