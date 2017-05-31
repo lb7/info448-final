@@ -239,7 +239,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
                 LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
                 String placeName = resultItemObj.getString("name");
-                String id = resultItemObj.getString("id");
+                String id = resultItemObj.getString("place_id");
                 String icon = resultItemObj.getString("icon");
                 String address = resultItemObj.getString("vicinity");
                 Double rating = 0.0;
