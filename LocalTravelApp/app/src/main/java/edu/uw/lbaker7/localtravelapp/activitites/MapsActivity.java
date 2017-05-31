@@ -44,10 +44,11 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
-import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.FilterItem;
+import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.fragments.FilterFragment;
@@ -451,6 +452,45 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         placeTypeArray.add(new FilterItem("Shopping Mall", true));
         placeTypeArray.add(new FilterItem("Spa", true));
         placeTypeArray.add(new FilterItem("Zoo", true));
+    }
+
+    /**
+     * Decodes a base64 encoded polyline. Returns a list of LatLng objects that can be used to create a PolyLine.
+     * Code adapted from http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
+     */
+    private List<LatLng> decodePolyline(String encoded) {
+
+            List<LatLng> points = new ArrayList<>();
+            int index = 0, len = encoded.length();
+            int lat = 0, lng = 0;
+
+            while (index < len) {
+                int b, shift = 0, result = 0;
+                do {
+                    b = encoded.charAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+
+                LatLng p = new LatLng((int) (((double) lat / 1E5) * 1E6),
+                        (int) (((double) lng / 1E5) * 1E6));
+                points.add(p);
+            }
+
+            return points;
+        }
     }
 
 }
