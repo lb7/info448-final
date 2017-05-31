@@ -97,7 +97,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        findViewById(R.id.btn_clear_dir).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMap.clear();
+                findViewById(R.id.btn_clear_dir).setVisibility(View.INVISIBLE);
 
+            }
+        });
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addConnectionCallbacks(this)
@@ -152,6 +159,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(i).coordinates).title(stuff.get(i).placeName).snippet("Click to see more!"));
                 marker.setTag(stuff.get(i));
             }
+            findViewById(R.id.btn_clear_dir).setVisibility(View.VISIBLE);
             Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(stuff.size()-1).coordinates).title(stuff.get(stuff.size()-1).placeName).snippet("Click to see more!"));
             marker.setTag(stuff.get(stuff.size()-1));
             String url="https://maps.googleapis.com/maps/api/directions/json?mode=walking&origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
@@ -358,8 +366,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public void handleSearch(String search){
-            stuff = new ArrayList<>();
-            String url = "";
+        stuff = new ArrayList<>();
+        findViewById(R.id.btn_clear_dir).setVisibility(View.INVISIBLE);
+
+        String url = "";
         String types = buildTypeString();
         Log.v(TAG, "handle search types = " + types);
         if (search != null) {
