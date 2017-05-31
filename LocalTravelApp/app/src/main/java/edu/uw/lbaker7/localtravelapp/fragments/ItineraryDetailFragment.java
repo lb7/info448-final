@@ -246,10 +246,11 @@ public class ItineraryDetailFragment extends Fragment {
                         adapter.remove(placeToDelete);
                         deleteButton.setVisibility(View.INVISIBLE);
 
-                        //TODO - update places arraylist maybe
+                        Log.v(TAG, "I'm deleting this objectID: " + placeIds.get(position));
 
-                        //TODO - Update firebase here
+                        firebaseController.deletePlaceFromItinerary(placeIds.get(position), itineraryKey);
 
+                        placeIds.remove(position);
                     }
                 });
 
