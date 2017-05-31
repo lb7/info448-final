@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import edu.uw.lbaker7.localtravelapp.ItineraryListItem;
 import edu.uw.lbaker7.localtravelapp.PlaceItem;
@@ -13,7 +13,7 @@ import edu.uw.lbaker7.localtravelapp.fragments.ItineraryDetailFragment;
 import edu.uw.lbaker7.localtravelapp.fragments.ItineraryListFragment;
 
 public class ItineraryActivity extends BaseActivity implements ItineraryListFragment.OnItinerarySelectedListener, ItineraryDetailFragment.OnCreateMapButtonSelectedListener {
-
+    public static final String ACTION_DRAW = "edu.uw.lbaker7.localtravelapp.ActionDraw";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +38,10 @@ public class ItineraryActivity extends BaseActivity implements ItineraryListFrag
     }
 
     @Override
-    public void onCreateMapButtonSelected(List<PlaceItem> places) {
-        startActivity(new Intent(this, MapsActivity.class));
+    public void onCreateMapButtonSelected(ArrayList<PlaceItem> places) {
+        Intent intent = new Intent(this, MapsActivity.class);
+        intent.putParcelableArrayListExtra("places",places );
+        intent.setAction(ACTION_DRAW);
+        startActivity(intent);
     }
 }

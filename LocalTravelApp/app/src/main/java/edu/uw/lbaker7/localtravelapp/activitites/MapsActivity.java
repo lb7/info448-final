@@ -3,10 +3,9 @@ package edu.uw.lbaker7.localtravelapp.activitites;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -34,8 +33,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 
 import org.json.JSONArray;
@@ -46,8 +47,9 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
-import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.FilterItem;
+import edu.uw.lbaker7.localtravelapp.PlaceItem;
+import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.fragments.FilterFragment;
@@ -66,11 +68,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng last;
     private PlaceListFragment placeListFragment;
     private Menu menu;
+    private ArrayList<PlaceItem>  stuff;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        if (ItineraryActivity.ACTION_DRAW.equals(action) ) {
+            stuff = intent.getExtras().getParcelableArrayList("places");
+            Log.v(TAG, "places "+ stuff);
+
+        }else{
+            stuff= new ArrayList();
+        }
+            super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -109,9 +121,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+//        LatLng sydney = new LatLng(-34, 151);
+//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        if(stuff.size() >0){
+            Log.v(TAG,stuff.size() +"" );
+            PolylineOptions polylineOptions = new PolylineOptions();
+            LatLngBounds bounds = LatLngBounds.builder().build();
+            for (int i = 0; i< stuff.size(); i++){
+                Log.v(TAG, stuff.get(i).coordinates+"" );
+                polylineOptions.add(stuff.get(i).coordinates);
+                mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
+                bounds.including(stuff.get(i).coordinates);
+
+            }
+            Log.v(TAG, polylineOptions.getPoints().toString());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
+
+
+            //mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
+        }
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
@@ -202,7 +231,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
             last = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+            if(stuff.size() == 0){
+                Log.v(TAG, "the fuck");
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+            }
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                         //handling response
@@ -229,39 +261,42 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
      */
     public void setRecent(JSONObject response){
-        mMap.clear();
-        try {
-            JSONArray jsonResults = response.getJSONArray("results"); //response.results
-            places = new ArrayList<PlaceItem>();
-            for(int i=0; i<jsonResults.length(); i++) {
+        if(stuff.size() == 0) {
+            mMap.clear();
+            try {
+                JSONArray jsonResults = response.getJSONArray("results"); //response.results
+                places = new ArrayList<PlaceItem>();
+                for (int i = 0; i < jsonResults.length(); i++) {
 
-                JSONObject resultItemObj = jsonResults.getJSONObject(i);
-                JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
-                LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
-                String placeName = resultItemObj.getString("name");
-                String id = resultItemObj.getString("id");
-                String icon = resultItemObj.getString("icon");
-                String address = resultItemObj.getString("vicinity");
-                Double rating = 0.0;
-                if(!resultItemObj.isNull("rating")){
-                    rating = resultItemObj.getDouble("rating");
+                    JSONObject resultItemObj = jsonResults.getJSONObject(i);
+                    JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
+                    LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
+                    String placeName = resultItemObj.getString("name");
+                    String id = resultItemObj.getString("id");
+                    String icon = resultItemObj.getString("icon");
+                    String address = resultItemObj.getString("vicinity");
+                    Double rating = 0.0;
+                    if (!resultItemObj.isNull("rating")) {
+                        rating = resultItemObj.getDouble("rating");
+                    }
+                    int priceLevel = 0;
+                    if (!resultItemObj.isNull("price_level")) {
+                        priceLevel = resultItemObj.getInt("price_level");
+                    }
+                    PlaceItem place = new PlaceItem(placeName, ltlg, icon, address, id, rating, priceLevel);
+                    places.add(place);
+                    Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
+                    marker.setTag(place);
+
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
+
+                    Log.v(TAG, ltlg.toString());
+
+
                 }
-                int priceLevel = 0;
-                if(!resultItemObj.isNull("price_level")){
-                    priceLevel =  resultItemObj.getInt("price_level");
-                }
-                PlaceItem place = new PlaceItem(placeName, ltlg , icon, address, id, rating, priceLevel);
-                places.add(place);
-                Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
-                marker.setTag(place);
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
-
-                Log.v(TAG, ltlg.toString());
-
-
+            } catch (JSONException e) {
+                Log.v(TAG, e.toString());
             }
-        }catch (JSONException e ){
-            Log.v(TAG, e.toString());
         }
     }
     public void handleSearch(View v){
@@ -349,65 +384,65 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-    public static class PlaceItem implements Parcelable {
-        public String placeName;
-        public LatLng coordinates;
-        public String icon;
-        public String address;
-        public String id;
-        public Double rating;
-        public int priceLevel;
-
-        public PlaceItem() {
-
-        }
-
-        public PlaceItem(String placeName, LatLng coordinates, String icon, String address, String id, Double rating, int priceLevel) {
-            this.placeName = placeName;
-            this.coordinates = coordinates;
-            this.icon = icon;
-            this.address = address;
-            this.id = id;
-            this.rating = rating;
-            this.priceLevel = priceLevel;
-        }
-
-        protected PlaceItem(Parcel in) {
-            placeName = in.readString();
-            coordinates = in.readParcelable(LatLng.class.getClassLoader());
-            icon = in.readString();
-            address = in.readString();
-            id = in.readString();
-            priceLevel = in.readInt();
-        }
-
-        public final Creator<PlaceItem> CREATOR = new Creator<PlaceItem>() {
-            @Override
-            public PlaceItem createFromParcel(Parcel in) {
-                return new PlaceItem(in);
-            }
-
-            @Override
-            public PlaceItem[] newArray(int size) {
-                return new PlaceItem[size];
-            }
-        };
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(placeName);
-            dest.writeParcelable(coordinates, flags);
-            dest.writeString(icon);
-            dest.writeString(address);
-            dest.writeString(id);
-            dest.writeInt(priceLevel);
-        }
-    }
+//    public static class PlaceItem implements Parcelable {
+//        public String placeName;
+//        public LatLng coordinates;
+//        public String icon;
+//        public String address;
+//        public String id;
+//        public Double rating;
+//        public int priceLevel;
+//
+//        public PlaceItem() {
+//
+//        }
+//
+//        public PlaceItem(String placeName, LatLng coordinates, String icon, String address, String id, Double rating, int priceLevel) {
+//            this.placeName = placeName;
+//            this.coordinates = coordinates;
+//            this.icon = icon;
+//            this.address = address;
+//            this.id = id;
+//            this.rating = rating;
+//            this.priceLevel = priceLevel;
+//        }
+//
+//        protected PlaceItem(Parcel in) {
+//            placeName = in.readString();
+//            coordinates = in.readParcelable(LatLng.class.getClassLoader());
+//            icon = in.readString();
+//            address = in.readString();
+//            id = in.readString();
+//            priceLevel = in.readInt();
+//        }
+//
+//        public final Creator<PlaceItem> CREATOR = new Creator<PlaceItem>() {
+//            @Override
+//            public PlaceItem createFromParcel(Parcel in) {
+//                return new PlaceItem(in);
+//            }
+//
+//            @Override
+//            public PlaceItem[] newArray(int size) {
+//                return new PlaceItem[size];
+//            }
+//        };
+//
+//        @Override
+//        public int describeContents() {
+//            return 0;
+//        }
+//
+//        @Override
+//        public void writeToParcel(Parcel dest, int flags) {
+//            dest.writeString(placeName);
+//            dest.writeParcelable(coordinates, flags);
+//            dest.writeString(icon);
+//            dest.writeString(address);
+//            dest.writeString(id);
+//            dest.writeInt(priceLevel);
+//        }
+//    }
 
     public ArrayList<PlaceItem> getPlaceList() {
         return places;
