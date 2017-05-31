@@ -3,7 +3,6 @@ package edu.uw.lbaker7.localtravelapp.activitites;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -128,16 +127,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.v(TAG,stuff.size() +"" );
             PolylineOptions polylineOptions = new PolylineOptions();
             LatLngBounds bounds = LatLngBounds.builder().build();
+            String waypoint = "";
             for (int i = 0; i< stuff.size(); i++){
-                Log.v(TAG, stuff.get(i).coordinates+"" );
-                polylineOptions.add(stuff.get(i).coordinates);
-                mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
-                bounds.including(stuff.get(i).coordinates);
+                waypoint += stuff.get(i).id +"|";
+//                Log.v(TAG, stuff.get(i).coordinates+"" );
+//                polylineOptions.add(stuff.get(i).coordinates);
+//                mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
+//                bounds.including(stuff.get(i).coordinates);
 
             }
+            String url="https://maps.googleapis.com/maps/api/directions/json?origin="+stuff.get(0).id+"&destination="+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint;
             Log.v(TAG, polylineOptions.getPoints().toString());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
+//            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
+                        //handling response
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            setPoly(response);//calling function to present data
+                        }
+                    }, new Response.ErrorListener() {
 
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.v(TAG, "There was an error:" + error);
+                        }
+                    });
+
+            // Adding the request to the PlacesRequestQueue
+            PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
 
             //mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
         }
@@ -158,8 +176,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
     }
+    public void setPoly(JSONObject response){
+        Log.v(TAG, response.toString());
+    }
 
-    @Override
+
+        @Override
     protected void onStart() {
         Log.v(TAG, "Started!!!");
 
