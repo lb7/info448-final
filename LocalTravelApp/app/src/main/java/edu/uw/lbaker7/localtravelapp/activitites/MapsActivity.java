@@ -209,7 +209,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onStop() {
-        Log.v(TAG, "Stoped!!!");
+        Log.v(TAG, "Stopped!!!");
 
         mGoogleApiClient.disconnect();
         super.onStop();
