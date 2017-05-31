@@ -56,6 +56,7 @@ public class ItineraryDetailFragment extends Fragment {
 
     private String itineraryKey;
 
+    private ArrayList<String> placeIds;
     private ArrayList<PlaceItem> places;
     private ArrayAdapter<PlaceItem> adapter;
 
@@ -89,37 +90,36 @@ public class ItineraryDetailFragment extends Fragment {
             String itineraryName = getArguments().getString(ITINERARY_NAME_KEY);
             TextView name = (TextView) rootView.findViewById(R.id.itineraryName);
             name.setText(itineraryName);
-            ArrayList<String> placeIds = getPlaceIds();
-            if (placeIds != null) {
-                places = getPlacesFromId(placeIds);
 
-                ArrayList<PlaceItem> placesArrayList = new ArrayList<PlaceItem>();
+            places = new ArrayList<PlaceItem>();
 
-                adapter = new PlaceItemAdapter(getActivity(), placesArrayList);
+            ArrayList<PlaceItem> arrayOfPlaceItems = new ArrayList<PlaceItem>();
 
-                getDummyObjects(); //dummy data
+            placeIds = getPlaceIds();
+            Log.v(TAG, "PlaceIds: " + placeIds.toString());
 
-                ListView listView = (ListView) rootView.findViewById(R.id.placeItems);
-                listView.setAdapter(adapter);
+            adapter = new PlaceItemAdapter(getActivity(), arrayOfPlaceItems);
 
-                listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                        Log.v(TAG, "showing delete button");
+            //getDummyObjects(); //dummy data
 
-                        //show red x button
-                        ImageButton deleteButton = (ImageButton) view.findViewById(R.id.deletePlaceButton);
-                        if (deleteButton.getVisibility() == View.INVISIBLE) {
-                            deleteButton.setVisibility(View.VISIBLE);
-                        } else {
-                            deleteButton.setVisibility(View.INVISIBLE);
-                        }
-                        return true;
+            ListView listView = (ListView) rootView.findViewById(R.id.placeItems);
+            listView.setAdapter(adapter);
+
+            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    Log.v(TAG, "showing delete button");
+
+                    //show red x button
+                    ImageButton deleteButton = (ImageButton) view.findViewById(R.id.deletePlaceButton);
+                    if (deleteButton.getVisibility() == View.INVISIBLE) {
+                        deleteButton.setVisibility(View.VISIBLE);
+                    } else {
+                        deleteButton.setVisibility(View.INVISIBLE);
                     }
-                });
-            } else {
-                Log.v(TAG, "placeIds was null");
-            }
+                    return true;
+                }
+            });
         }
 
         Button shareButton = (Button) rootView.findViewById(R.id.shareItineraryButton);
@@ -248,29 +248,26 @@ public class ItineraryDetailFragment extends Fragment {
         loader.get(url, ImageLoader.getImageListener(placeIconView, 0, 0));
     }
 
-    private ArrayList<PlaceItem> getPlacesFromId(ArrayList<String> placeIds) {
-
-        final ArrayList<PlaceItem> placeList = new ArrayList<PlaceItem>();
-
+    private void getPlaceFromId(String placeId) {
         //https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM
 
         RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
 
-        for (String currentPlaceId : placeIds) {
-            String urlString = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
-            urlString += currentPlaceId;
-            urlString += "&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
+        String urlString = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
+        urlString += placeId;
+        urlString += "&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
 
-            Log.v(TAG, "current url: " + urlString);
+        Log.v(TAG, "current url: " + urlString);
 
-            //RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
+        //RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
 
-            JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, urlString, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, urlString, null,
+                new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     PlaceItem place = PlaceItem.parseObjectFromJson(response);
                     adapter.add(place);
-                    placeList.add(place);
+                    places.add(place);
                 }
             }, new Response.ErrorListener() {
                 public void onErrorResponse(VolleyError error) {
@@ -278,8 +275,6 @@ public class ItineraryDetailFragment extends Fragment {
                 }
             });
             queue.add(jsonRequest);
-        }
-        return placeList;
     }
 
     private void onCreateMap(ArrayList<PlaceItem> places) {
@@ -288,18 +283,15 @@ public class ItineraryDetailFragment extends Fragment {
 
     private ArrayList<String> getPlaceIds() {
 
-        final ArrayList<String> placeIds = new ArrayList<String>();
+        final ArrayList<String> placeIdsToReturn = new ArrayList<String>();
+        Log.v(TAG, "getting places from firebase");
 
         firebaseController.getPlacesFromItinerary(itineraryKey, new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if (dataSnapshot.hasChildren()) {
-                    Log.v(TAG, "dataSnapshot has children");
-                    Iterable<DataSnapshot> placesIterable = dataSnapshot.getChildren();
-                    for (DataSnapshot currentChild : placesIterable) {
-                        placeIds.add(currentChild.getKey());
-                    }
-                }
+                Log.v(TAG, dataSnapshot.toString());
+                getPlaceFromId(dataSnapshot.getKey());
+                placeIdsToReturn.add(dataSnapshot.getKey());
                 adapter.notifyDataSetChanged();
             }
 
@@ -324,8 +316,8 @@ public class ItineraryDetailFragment extends Fragment {
             }
         });
 
-        placeIds.add("ChIJN1t_tDeuEmsRUsoyG83frY4");
-        return placeIds;
+        Log.v(TAG, placeIdsToReturn.toString());
+        return placeIdsToReturn;
     }
 
 }
