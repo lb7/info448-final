@@ -68,11 +68,6 @@ public class PlacesDialog extends DialogFragment {
             public void onClick(DialogInterface dialog, int id) {
                 // sign in the user ...
             }
-        })
-        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                //LoginDialogFragment.this.getDialog().cancel();
-            }
         });
         final AlertDialog dialog = builder.create();
         root.findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {

@@ -127,13 +127,7 @@ public class AddPlaceDialog extends DialogFragment {
                 dialog.show(getFragmentManager(), "new itinerary dialog");
             }
         });
-        builder.setView(rootView).setPositiveButton("Done", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // sign in the user ...
-            }
-        })
-        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+        builder.setView(rootView).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //LoginDialogFragment.this.getDialog().cancel();
             }

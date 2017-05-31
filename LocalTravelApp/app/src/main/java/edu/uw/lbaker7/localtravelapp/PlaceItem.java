@@ -93,7 +93,7 @@ public class PlaceItem implements Parcelable {
             Double lat = location.getDouble("lat");
             Double lng = location.getDouble("lng");
             LatLng currentCoordinates = new LatLng(lat, lng);
-            String id = result.getString("id");
+            String id = result.getString("place_id");
 
             String address = result.getString("vicinity");
             Double rating = 0.0;

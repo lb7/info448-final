@@ -32,7 +32,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -119,24 +118,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
         if(stuff.size() >0){
             Log.v(TAG,stuff.size() +"" );
             PolylineOptions polylineOptions = new PolylineOptions();
-            LatLngBounds bounds = LatLngBounds.builder().build();
+           // LatLngBounds bounds = LatLngBounds.builder().build();
             String waypoint = "";
-            for (int i = 0; i< stuff.size(); i++){
-                waypoint += stuff.get(i).id +"|";
+            for (int i = 0; i< stuff.size()-1; i++){
+                waypoint += "place_id:"+stuff.get(i).id +"|";
 //                Log.v(TAG, stuff.get(i).coordinates+"" );
 //                polylineOptions.add(stuff.get(i).coordinates);
 //                mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
 //                bounds.including(stuff.get(i).coordinates);
 
             }
-            String url="https://maps.googleapis.com/maps/api/directions/json?origin="+stuff.get(0).id+"&destination="+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint;
+            String url="https://maps.googleapis.com/maps/api/directions/json?origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
             Log.v(TAG, polylineOptions.getPoints().toString());
 //            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -178,6 +174,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void setPoly(JSONObject response){
         Log.v(TAG, response.toString());
+        try {
+            JSONArray jsonResults = response.getJSONArray("routes"); //response.results
+            String points = jsonResults.getJSONObject(0).getJSONObject("overview_polyline").getString("points");
+            Log.v(TAG, points);
+
+        }catch (JSONException e){
+
+        }
+
     }
 
 
@@ -294,7 +299,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
                     LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
                     String placeName = resultItemObj.getString("name");
-                    String id = resultItemObj.getString("id");
+                    String id = resultItemObj.getString("place_id");
                     String icon = resultItemObj.getString("icon");
                     String address = resultItemObj.getString("vicinity");
                     Double rating = 0.0;
