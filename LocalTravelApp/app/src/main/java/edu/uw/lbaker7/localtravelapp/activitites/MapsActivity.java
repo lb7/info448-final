@@ -1,12 +1,13 @@
 package edu.uw.lbaker7.localtravelapp.activitites;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -19,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -34,9 +36,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.maps.android.PolyUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +53,7 @@ import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
 import edu.uw.lbaker7.localtravelapp.FilterItem;
+import edu.uw.lbaker7.localtravelapp.PlaceItem;
 import edu.uw.lbaker7.localtravelapp.PlacesDialog;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
@@ -55,7 +61,7 @@ import edu.uw.lbaker7.localtravelapp.fragments.FilterFragment;
 import edu.uw.lbaker7.localtravelapp.fragments.PlaceListFragment;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener, PlacesDialog.OnItineraryChooseListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener ,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, PlaceListFragment.OnMapButtonClickedListener, PlacesDialog.OnItineraryChooseListener, FilterFragment.OnFilterButtonClickedListener {
 
     private static final int LOCATION_REQUEST_CODE = 1;
     private ArrayList<PlaceItem> places;
@@ -66,15 +72,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleApiClient mGoogleApiClient;
     private LatLng last;
     private PlaceListFragment placeListFragment;
+    private FilterFragment filterFragment;
     private Menu menu;
+    private ArrayList<PlaceItem>  stuff;
 
+    private String[] placeTypes;
+    private SupportMapFragment mapFragment;
+    private View controls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        if (ItineraryActivity.ACTION_DRAW.equals(action) ) {
+            stuff = intent.getExtras().getParcelableArrayList("places");
+            Log.v(TAG, "places "+ stuff);
+
+        }else{
+            stuff= new ArrayList();
+        }
+            super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -91,8 +111,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest.setFastestInterval(50000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
+        placeTypes = getResources().getStringArray(R.array.place_types);
         createFilterArray();
 
+        EditText editText = (EditText) findViewById(R.id.search);
+        final String search = URLEncoder.encode(editText.getText().toString());
+        Log.v(TAG, search);
+
+        ImageButton searchButton = (ImageButton) findViewById(R.id.btn_search);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleSearch(search);
+            }
+        });
+
+        controls = findViewById(R.id.controls_container);
     }
 
 
@@ -109,10 +143,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+        if(stuff.size() >0){
+            String waypoint = "";
+
+            for (int i = 0; i< stuff.size()-1; i++){
+                waypoint += "place_id:"+stuff.get(i).id +"|";
+                Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(i).coordinates).title(stuff.get(i).placeName).snippet("Click to see more!"));
+                marker.setTag(stuff.get(i));
+            }
+            Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(stuff.size()-1).coordinates).title(stuff.get(stuff.size()-1).placeName).snippet("Click to see more!"));
+            marker.setTag(stuff.get(stuff.size()-1));
+            String url="https://maps.googleapis.com/maps/api/directions/json?mode=walking&origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
+                        //handling response
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            setPoly(response);//calling function to present data
+                        }
+                    }, new Response.ErrorListener() {
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.v(TAG, "There was an error:" + error);
+                        }
+                    });
+
+            // Adding the request to the PlacesRequestQueue
+            PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
+        }
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
@@ -130,8 +190,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
     }
+    public void setPoly(JSONObject response){
+        Log.v(TAG, response.toString());
+        try {
+            JSONArray jsonResults = response.getJSONArray("routes"); //response.results
+            String points = jsonResults.getJSONObject(0).getJSONObject("overview_polyline").getString("points");
+            Log.v(TAG, points);
+            List<LatLng> LatLngs = PolyUtil.decode(points);
+            LatLngBounds.Builder bounds = LatLngBounds.builder();
 
-    @Override
+            PolylineOptions polylineOptions = new PolylineOptions();
+
+            for (int i = 0; i< LatLngs.size(); i++){
+                polylineOptions.add(LatLngs.get(i));
+                bounds.include(LatLngs.get(i));
+            }
+            mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),5));
+
+            Log.v(TAG, LatLngs.toString());
+        }catch (JSONException e){
+
+        }
+
+    }
+
+
+        @Override
     protected void onStart() {
         Log.v(TAG, "Started!!!");
 
@@ -145,7 +230,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onStop() {
-        Log.v(TAG, "Stoped!!!");
+        Log.v(TAG, "Stopped!!!");
 
         mGoogleApiClient.disconnect();
         super.onStop();
@@ -200,10 +285,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         if(location != null){
-            String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
+
+            String types = buildTypeString();
+            Log.v(TAG, "onLocationChanged types= " + types);
+
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+            Log.v(TAG, "url on location changed = " + url);
             last = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+            if(stuff.size() == 0){
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
+            }
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                         //handling response
@@ -222,7 +313,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Adding the request to the PlacesRequestQueue
             PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
         }
-
     }
     /*
    [{"geometry":{
@@ -230,49 +320,55 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
      */
     public void setRecent(JSONObject response){
-        mMap.clear();
-        try {
-            JSONArray jsonResults = response.getJSONArray("results"); //response.results
-            places = new ArrayList<PlaceItem>();
-            for(int i=0; i<jsonResults.length(); i++) {
+        if(stuff.size() == 0) {
+            mMap.clear();
+            try {
+                JSONArray jsonResults = response.getJSONArray("results"); //response.results
+                places = new ArrayList<PlaceItem>();
+                for (int i = 0; i < jsonResults.length(); i++) {
 
-                JSONObject resultItemObj = jsonResults.getJSONObject(i);
-                JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
-                LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
-                String placeName = resultItemObj.getString("name");
-                String id = resultItemObj.getString("place_id");
-                String icon = resultItemObj.getString("icon");
-                String address = resultItemObj.getString("vicinity");
-                Double rating = 0.0;
-                if(!resultItemObj.isNull("rating")){
-                    rating = resultItemObj.getDouble("rating");
+                    JSONObject resultItemObj = jsonResults.getJSONObject(i);
+                    JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
+                    LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
+                    String placeName = resultItemObj.getString("name");
+                    String id = resultItemObj.getString("place_id");
+                    String icon = resultItemObj.getString("icon");
+                    String address = resultItemObj.getString("vicinity");
+                    Double rating = 0.0;
+                    if (!resultItemObj.isNull("rating")) {
+                        rating = resultItemObj.getDouble("rating");
+                    }
+                    int priceLevel = 0;
+                    if (!resultItemObj.isNull("price_level")) {
+                        priceLevel = resultItemObj.getInt("price_level");
+                    }
+                    PlaceItem place = new PlaceItem(placeName, ltlg, icon, address, id, rating, priceLevel);
+                    places.add(place);
+                    Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
+                    marker.setTag(place);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(places.get(i).coordinates));
+
+
                 }
-                int priceLevel = 0;
-                if(!resultItemObj.isNull("price_level")){
-                    priceLevel =  resultItemObj.getInt("price_level");
-                }
-                PlaceItem place = new PlaceItem(placeName, ltlg , icon, address, id, rating, priceLevel);
-                places.add(place);
-                Marker marker = mMap.addMarker(new MarkerOptions().position(ltlg).title(placeName).snippet("Click to see more!"));
-                marker.setTag(place);
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(ltlg));
-
-                Log.v(TAG, ltlg.toString());
-
-
+            } catch (JSONException e) {
+                Log.v(TAG, e.toString());
             }
-        }catch (JSONException e ){
-            Log.v(TAG, e.toString());
         }
     }
-    public void handleSearch(View v){
-        EditText editText = (EditText) findViewById(R.id.search);
-        String search = URLEncoder.encode(editText.getText().toString());
-        Log.v(TAG, search);
 
 
-        String types = "restaurant|aquarium|amusement_park|art_gallery|bakery|bar|beauty_salon|cafe|bowling_alley|clothing_store|hair_care|jewelry_store|library|meal_takeaway|movie_theater|museum|night_club|park|shopping_mall|zoo|spa";
-        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500";
+    public void handleSearch(String search){
+            stuff = new ArrayList<>();
+            String url = "";
+        String types = buildTypeString();
+        Log.v(TAG, "handle search types = " + types);
+        if (search != null) {
+            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+        } else {
+            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + last.latitude + "," + last.longitude + "&radius=500&type=" + types + "&key=" + getString(R.string.google_place_key);
+        }
+        Log.v(TAG, "url on handle search = " + url);
+
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
@@ -291,13 +387,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Adding the request to the NewsRequestQueue
         PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
-
-
     }
     public void handleFilter(View v){
-        FilterFragment filterFragment = FilterFragment.newInstance();
+        createFilterArray();
+        controls.setVisibility(View.INVISIBLE);
+        filterFragment = FilterFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.map_container, filterFragment);
+        ft.replace(R.id.map, filterFragment);
         ft.addToBackStack("Filter Fragment");
         ft.commit();
     }
@@ -322,9 +418,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.mapList:
                 placeListFragment = PlaceListFragment.newInstance();
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.map_container, placeListFragment);
+                ft.replace(R.id.map, placeListFragment);
+                ft.addToBackStack(null);
                 ft.commit();
                 item.setVisible(false);
+                controls.setVisibility(View.INVISIBLE);
                 return true; //handled
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -340,74 +438,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+
+    public void onApplyFilterButtonClicked() {
+        controls.setVisibility(View.VISIBLE);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.map, mapFragment);
+        ft.commit();
+        handleSearch(null);
+    }
+
     public void onItineraryChoose(PlaceItem item) {
         Log.v(TAG, "Should work");
         Log.v(TAG, getFragmentManager().toString());
         AddPlaceDialog.newInstance(item).show(getSupportFragmentManager(),"ChooseItinerary");
 
-    }
-
-
-
-
-    public static class PlaceItem implements Parcelable {
-        public String placeName;
-        public LatLng coordinates;
-        public String icon;
-        public String address;
-        public String id;
-        public Double rating;
-        public int priceLevel;
-
-        public PlaceItem() {
-
-        }
-
-        public PlaceItem(String placeName, LatLng coordinates, String icon, String address, String id, Double rating, int priceLevel) {
-            this.placeName = placeName;
-            this.coordinates = coordinates;
-            this.icon = icon;
-            this.address = address;
-            this.id = id;
-            this.rating = rating;
-            this.priceLevel = priceLevel;
-        }
-
-        protected PlaceItem(Parcel in) {
-            placeName = in.readString();
-            coordinates = in.readParcelable(LatLng.class.getClassLoader());
-            icon = in.readString();
-            address = in.readString();
-            id = in.readString();
-            priceLevel = in.readInt();
-        }
-
-        public final Creator<PlaceItem> CREATOR = new Creator<PlaceItem>() {
-            @Override
-            public PlaceItem createFromParcel(Parcel in) {
-                return new PlaceItem(in);
-            }
-
-            @Override
-            public PlaceItem[] newArray(int size) {
-                return new PlaceItem[size];
-            }
-        };
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(placeName);
-            dest.writeParcelable(coordinates, flags);
-            dest.writeString(icon);
-            dest.writeString(address);
-            dest.writeString(id);
-            dest.writeInt(priceLevel);
-        }
     }
 
     public ArrayList<PlaceItem> getPlaceList() {
@@ -420,76 +464,42 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapButtonClicked() {
+        controls.setVisibility(View.VISIBLE);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.remove(placeListFragment);
+        ft.replace(R.id.map, mapFragment);
         ft.commit();
         MenuItem item = menu.findItem(R.id.mapList);
         item.setVisible(true);
     }
 
     private void createFilterArray() {
+
         placeTypeArray = new ArrayList<>();
-        // Array of place types that users can filter
-        placeTypeArray = new ArrayList<>();
-        placeTypeArray.add(new FilterItem("Amusement Park", true));
-        placeTypeArray.add(new FilterItem("Art Gallery", true));
-        placeTypeArray.add(new FilterItem("Aquarium", true));
-        placeTypeArray.add(new FilterItem("Bakery", true));
-        placeTypeArray.add(new FilterItem("Bar", true));
-        placeTypeArray.add(new FilterItem("Beauty Salon", true));
-        placeTypeArray.add(new FilterItem("Bowling Alley", true));
-        placeTypeArray.add(new FilterItem("Cafe", true));
-        placeTypeArray.add(new FilterItem("Clothing Store", true));
-        placeTypeArray.add(new FilterItem("Hair Care", true));
-        placeTypeArray.add(new FilterItem("Jewelry Store", true));
-        placeTypeArray.add(new FilterItem("Library", true));
-        placeTypeArray.add(new FilterItem("Meal Takeaway", true));
-        placeTypeArray.add(new FilterItem("Movie Theater", true));
-        placeTypeArray.add(new FilterItem("Museum", true));
-        placeTypeArray.add(new FilterItem("Night Club", true));
-        placeTypeArray.add(new FilterItem("Park", true));
-        placeTypeArray.add(new FilterItem("Restaurant", true));
-        placeTypeArray.add(new FilterItem("Shopping Mall", true));
-        placeTypeArray.add(new FilterItem("Spa", true));
-        placeTypeArray.add(new FilterItem("Zoo", true));
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        for (String s : placeTypes) {
+            boolean isChecked = sharedPref.getBoolean(s, true);
+            Log.v(TAG, s + " " + isChecked);
+            placeTypeArray.add(new FilterItem(s, isChecked));
+        }
     }
 
-    /**
-     * Decodes a base64 encoded polyline. Returns a list of LatLng objects that can be used to create a PolyLine.
-     * Code adapted from http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
-     */
-    private List<LatLng> decodePolyline(String encoded) {
-
-        List<LatLng> points = new ArrayList<>();
-        int index = 0, len = encoded.length();
-        int lat = 0, lng = 0;
-
-        while (index < len) {
-            int b, shift = 0, result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lat += dlat;
-
-            shift = 0;
-            result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lng += dlng;
-
-            LatLng p = new LatLng((int) (((double) lat / 1E5) * 1E6),
-                    (int) (((double) lng / 1E5) * 1E6));
-            points.add(p);
+    private String buildTypeString() {
+        // get all place types that are checked
+        List<String> filterStrings = new ArrayList<>();
+        for (FilterItem item: placeTypeArray) {
+            if(item.isSelected) {
+                filterStrings.add(item.getType());
+            }
         }
 
-        return points;
+        String types = "";
+        for (int i = 0; i < filterStrings.size() - 1; i++) {
+            types += filterStrings.get(i).toLowerCase().replace(" ", "_") + "|";
+        }
+        types += filterStrings.get(filterStrings.size() - 1).toLowerCase().replace(" ", "_");
+        Log.v(TAG, "types =" + types);
+
+        return types;
     }
 
 }

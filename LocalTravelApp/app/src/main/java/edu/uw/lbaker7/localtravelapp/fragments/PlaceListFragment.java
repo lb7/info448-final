@@ -22,6 +22,7 @@ import com.android.volley.toolbox.NetworkImageView;
 import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
+import edu.uw.lbaker7.localtravelapp.PlaceItem;
 import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.activitites.MapsActivity;
@@ -30,7 +31,7 @@ public class PlaceListFragment extends Fragment {
     
     private static final String TAG = "PlaceListFragment";
 
-    private List<MapsActivity.PlaceItem> data;
+    private List<PlaceItem> data;
     private PlacesAdapter adapter;
     private ImageLoader imageLoader;
 
@@ -90,7 +91,7 @@ public class PlaceListFragment extends Fragment {
         return rootView;
     }
 
-    public class PlacesAdapter extends ArrayAdapter<MapsActivity.PlaceItem> {
+    public class PlacesAdapter extends ArrayAdapter<PlaceItem> {
 
         private class ViewHolder {
             NetworkImageView placeImage;
@@ -100,14 +101,14 @@ public class PlaceListFragment extends Fragment {
             ImageButton button;
         }
 
-        public PlacesAdapter(Context context, List<MapsActivity.PlaceItem> places) {
+        public PlacesAdapter(Context context, List<PlaceItem> places) {
             super(context, R.layout.place_list_item, places);
         }
 
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            final MapsActivity.PlaceItem placeItem = getItem(position);
+            final PlaceItem placeItem = getItem(position);
 
             ViewHolder holder;
             if (convertView == null) {

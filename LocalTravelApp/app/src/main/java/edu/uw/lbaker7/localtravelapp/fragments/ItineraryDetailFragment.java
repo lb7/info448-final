@@ -35,7 +35,6 @@ import com.google.firebase.database.DatabaseError;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.FirebaseController;
 import edu.uw.lbaker7.localtravelapp.PlaceItem;
@@ -70,7 +69,7 @@ public class ItineraryDetailFragment extends Fragment {
     }
 
     public interface OnCreateMapButtonSelectedListener {
-        void onCreateMapButtonSelected(List<PlaceItem> places);
+        void onCreateMapButtonSelected(ArrayList<PlaceItem> places);
     }
 
     public static ItineraryDetailFragment newInstance(String itineraryName, String itineraryKey) {

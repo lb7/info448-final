@@ -30,14 +30,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import edu.uw.lbaker7.localtravelapp.activitites.MapsActivity;
-
 /**
  * Created by Christa Joy Jaeger on 5/26/2017.
  */
 
 public class AddPlaceDialog extends DialogFragment {
-    private MapsActivity.PlaceItem placeItem;
+    private PlaceItem placeItem;
 
     private static final String TAG = "ItineraryDialog";
 
@@ -47,7 +45,7 @@ public class AddPlaceDialog extends DialogFragment {
     private String itineraryKey;
 
 
-    public static AddPlaceDialog newInstance(MapsActivity.PlaceItem place) {
+    public static AddPlaceDialog newInstance(PlaceItem place) {
         Bundle args = new Bundle();
         AddPlaceDialog fragment = new AddPlaceDialog();
         Log.v(TAG, place.placeName);
@@ -129,13 +127,7 @@ public class AddPlaceDialog extends DialogFragment {
                 dialog.show(getFragmentManager(), "new itinerary dialog");
             }
         });
-        builder.setView(rootView).setPositiveButton("Done", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // sign in the user ...
-            }
-        })
-        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+        builder.setView(rootView).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 //LoginDialogFragment.this.getDialog().cancel();
             }

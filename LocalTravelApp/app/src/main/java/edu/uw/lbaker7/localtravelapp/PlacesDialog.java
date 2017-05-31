@@ -14,8 +14,6 @@ import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 
-import edu.uw.lbaker7.localtravelapp.activitites.MapsActivity;
-
 import static android.content.ContentValues.TAG;
 
 /**
@@ -23,10 +21,10 @@ import static android.content.ContentValues.TAG;
  */
 
 public class PlacesDialog extends DialogFragment {
-    private MapsActivity.PlaceItem placeItem;
+    private PlaceItem placeItem;
     private OnItineraryChooseListener itineraryCallback;
 
-    public static PlacesDialog newInstance(MapsActivity.PlaceItem place) {
+    public static PlacesDialog newInstance(PlaceItem place) {
         Bundle args = new Bundle();
         PlacesDialog fragment = new PlacesDialog();
         Log.v(TAG, place.placeName);
@@ -46,7 +44,7 @@ public class PlacesDialog extends DialogFragment {
         }
     }
     public interface OnItineraryChooseListener {
-        void onItineraryChoose(MapsActivity.PlaceItem item);
+        void onItineraryChoose(PlaceItem item);
     }
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -69,11 +67,6 @@ public class PlacesDialog extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 // sign in the user ...
-            }
-        })
-        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                //LoginDialogFragment.this.getDialog().cancel();
             }
         });
         final AlertDialog dialog = builder.create();

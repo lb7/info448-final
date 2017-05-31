@@ -3,14 +3,11 @@ package edu.uw.lbaker7.localtravelapp;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by Christa Joy Jaeger on 5/24/2017.
@@ -34,8 +31,6 @@ public class PlacesRequestQueue {
                 return mCache.get(url);
             }
         });
-        Log.v(TAG,"This happened 2");
-
     }
 
     public static synchronized PlacesRequestQueue getInstance(Context context) {
