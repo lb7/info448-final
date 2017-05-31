@@ -3,6 +3,7 @@ package edu.uw.lbaker7.localtravelapp.activitites;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -32,10 +33,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.maps.android.PolyUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,6 +46,7 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
 import edu.uw.lbaker7.localtravelapp.FilterItem;
@@ -120,21 +124,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         if(stuff.size() >0){
-            Log.v(TAG,stuff.size() +"" );
-            PolylineOptions polylineOptions = new PolylineOptions();
-           // LatLngBounds bounds = LatLngBounds.builder().build();
             String waypoint = "";
             for (int i = 0; i< stuff.size()-1; i++){
                 waypoint += "place_id:"+stuff.get(i).id +"|";
-//                Log.v(TAG, stuff.get(i).coordinates+"" );
-//                polylineOptions.add(stuff.get(i).coordinates);
-//                mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
-//                bounds.including(stuff.get(i).coordinates);
-
             }
             String url="https://maps.googleapis.com/maps/api/directions/json?origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
-            Log.v(TAG, polylineOptions.getPoints().toString());
-//            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 5));
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                         //handling response
@@ -152,8 +146,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Adding the request to the PlacesRequestQueue
             PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
-
-            //mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
         }
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
@@ -178,7 +170,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             JSONArray jsonResults = response.getJSONArray("routes"); //response.results
             String points = jsonResults.getJSONObject(0).getJSONObject("overview_polyline").getString("points");
             Log.v(TAG, points);
+            List<LatLng> LatLngs = PolyUtil.decode(points);
+            LatLngBounds.Builder bounds = LatLngBounds.builder();
 
+            PolylineOptions polylineOptions = new PolylineOptions();
+
+            for (int i = 0; i< LatLngs.size(); i++){
+                polylineOptions.add(LatLngs.get(i));
+                bounds.include(LatLngs.get(i));
+            }
+            mMap.addPolyline(polylineOptions.color(Color.BLUE).width(10));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),5));
+
+            Log.v(TAG, LatLngs.toString());
         }catch (JSONException e){
 
         }
@@ -352,8 +356,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Adding the request to the NewsRequestQueue
         PlacesRequestQueue.getInstance(this).addToRequestQueue(jsObjRequest);
-
-
     }
     public void handleFilter(View v){
         FilterFragment filterFragment = FilterFragment.newInstance();
@@ -407,69 +409,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         AddPlaceDialog.newInstance(item).show(getSupportFragmentManager(),"ChooseItinerary");
 
     }
-
-
-
-
-//    public static class PlaceItem implements Parcelable {
-//        public String placeName;
-//        public LatLng coordinates;
-//        public String icon;
-//        public String address;
-//        public String id;
-//        public Double rating;
-//        public int priceLevel;
-//
-//        public PlaceItem() {
-//
-//        }
-//
-//        public PlaceItem(String placeName, LatLng coordinates, String icon, String address, String id, Double rating, int priceLevel) {
-//            this.placeName = placeName;
-//            this.coordinates = coordinates;
-//            this.icon = icon;
-//            this.address = address;
-//            this.id = id;
-//            this.rating = rating;
-//            this.priceLevel = priceLevel;
-//        }
-//
-//        protected PlaceItem(Parcel in) {
-//            placeName = in.readString();
-//            coordinates = in.readParcelable(LatLng.class.getClassLoader());
-//            icon = in.readString();
-//            address = in.readString();
-//            id = in.readString();
-//            priceLevel = in.readInt();
-//        }
-//
-//        public final Creator<PlaceItem> CREATOR = new Creator<PlaceItem>() {
-//            @Override
-//            public PlaceItem createFromParcel(Parcel in) {
-//                return new PlaceItem(in);
-//            }
-//
-//            @Override
-//            public PlaceItem[] newArray(int size) {
-//                return new PlaceItem[size];
-//            }
-//        };
-//
-//        @Override
-//        public int describeContents() {
-//            return 0;
-//        }
-//
-//        @Override
-//        public void writeToParcel(Parcel dest, int flags) {
-//            dest.writeString(placeName);
-//            dest.writeParcelable(coordinates, flags);
-//            dest.writeString(icon);
-//            dest.writeString(address);
-//            dest.writeString(id);
-//            dest.writeInt(priceLevel);
-//        }
-//    }
 
     public ArrayList<PlaceItem> getPlaceList() {
         return places;
