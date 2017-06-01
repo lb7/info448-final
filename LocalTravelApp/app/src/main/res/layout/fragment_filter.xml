@@ -17,6 +17,7 @@
             android:layout_gravity="center"
             android:layout_margin="10dp"
             android:text="Apply Filter"
+            android:backgroundTint="@color/btn_color"
             />
 
         <ListView

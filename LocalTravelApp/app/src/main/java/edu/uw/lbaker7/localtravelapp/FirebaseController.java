@@ -2,6 +2,7 @@ package edu.uw.lbaker7.localtravelapp;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -68,13 +69,17 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
                 .addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
             @Override
             public void onComplete(@NonNull Task<ProviderQueryResult> task) {
-                List<String> providers = task.getResult().getProviders();
-                if (task.isSuccessful() && providers != null && !providers.isEmpty()) {
-                    //Email is available
-                    signIn(email, password, listener);
+                if (task.isSuccessful()) {
+                    List<String> providers = task.getResult().getProviders();
+                    if (providers != null && !providers.isEmpty()) {
+                        //Email is available
+                        signIn(email, password, listener);
+                    } else {
+                        //Email is in use already
+                        createAccount(email, password, listener);
+                    }
                 } else {
-                    //Email is in use already
-                    createAccount(email, password, listener);
+                    Log.w(TAG, task.getException());
                 }
             }
         });
@@ -114,7 +119,7 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
             DatabaseReference itineraryReference = mItinerariesReference.push();
             itineraryReference.setValue(itinerary);
             itineraryReference.child("owner").setValue(user.getUid());
-            itineraryReference.child("ownerEmail").setValue(user.getEmail());
+            itineraryReference.child("ownerName").setValue(user.getDisplayName());
 
             String itineraryKey = itineraryReference.getKey();
 
@@ -189,7 +194,7 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                             dataSnapshot.child("itineraries").child(itineraryId).child("sharedBy").getRef()
-                                    .setValue(mAuth.getCurrentUser().getEmail());
+                                    .setValue(mAuth.getCurrentUser().getDisplayName());
                         }
 
                         @Override
