@@ -31,6 +31,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:text="CREATE ITINERARY"
+            android:backgroundTint="@color/btn_color"
             />
 
 

@@ -18,6 +18,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_margin="10dp"
+        android:backgroundTint="@color/btn_color"
         />
 
 </RelativeLayout>

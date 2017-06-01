@@ -157,11 +157,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        /*LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
-
         if(stuff.size() >0){
             String waypoint = "";
 
@@ -447,7 +442,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ft.replace(R.id.map, placeListFragment);
                 ft.addToBackStack(null);
                 ft.commit();
-                item.setVisible(false);
                 controls.setVisibility(View.INVISIBLE);
                 return true; //handled
             case R.id.settings:

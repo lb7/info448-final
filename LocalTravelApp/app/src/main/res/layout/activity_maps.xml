@@ -37,6 +37,7 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp"
                 android:src="@android:drawable/ic_menu_search"
+                android:backgroundTint="@color/btn_color"
                 />
             <Button
                 android:layout_width="wrap_content"
@@ -44,6 +45,7 @@
                 android:padding="10dp"
                 android:text="Filter"
                 android:onClick="handleFilter"
+                android:backgroundTint="@color/btn_color"
                 />
         </LinearLayout>
 
