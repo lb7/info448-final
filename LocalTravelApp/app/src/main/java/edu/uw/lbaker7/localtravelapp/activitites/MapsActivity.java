@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -82,6 +83,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
         Intent intent = getIntent();
         String action = intent.getAction();
         if (ItineraryActivity.ACTION_DRAW.equals(action) ) {
@@ -303,6 +307,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String types = buildTypeString();
             Log.v(TAG, "onLocationChanged types= " + types);
 
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MapsActivity.this);
+            String radius = sharedPreferences.getString(SettingsActivity.KEY_PREF_RADIUS, "");
+            Log.v(TAG, "current radius" + radius);
+
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
             Log.v(TAG, "url on location changed = " + url);
             last = new LatLng(location.getLatitude(), location.getLongitude());
@@ -378,6 +386,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         String url = "";
         String types = buildTypeString();
         Log.v(TAG, "handle search types = " + types);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MapsActivity.this);
+        String radius = sharedPreferences.getString(SettingsActivity.KEY_PREF_RADIUS, "");
+        Log.v(TAG, "current radius" + radius);
+
         if (search != null) {
             url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
         } else {
