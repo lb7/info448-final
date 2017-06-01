@@ -32,12 +32,12 @@ public class ShareItineraryDialog extends DialogFragment {
                         Log.v(TAG, "email entered: " + email);
 
                         Bundle args = getArguments();
-                        if (args != null) {
+                        if (args != null && !email.isEmpty()) {
                             String itineraryId = args.getString(ARG_ITINERARY_ID, "");
                             FirebaseController.getInstance().shareItineraryToUser(itineraryId, email);
-                        }
 
-                        dialog.dismiss();
+                            dialog.dismiss();
+                        }
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
