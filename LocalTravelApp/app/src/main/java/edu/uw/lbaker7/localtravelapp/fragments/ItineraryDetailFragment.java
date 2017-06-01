@@ -260,7 +260,7 @@ public class ItineraryDetailFragment extends Fragment {
                 }
             }, new Response.ErrorListener() {
                 public void onErrorResponse(VolleyError error) {
-                    Log.v(TAG, "A volley error occured.");
+                    Log.v(TAG, "A volley error occurred: "+ error);
                 }
             });
             queue.add(jsonRequest);

@@ -23,8 +23,8 @@ import java.util.List;
 
 import edu.uw.lbaker7.localtravelapp.AddPlaceDialog;
 import edu.uw.lbaker7.localtravelapp.PlaceItem;
-import edu.uw.lbaker7.localtravelapp.PlacesRequestQueue;
 import edu.uw.lbaker7.localtravelapp.R;
+import edu.uw.lbaker7.localtravelapp.VolleySingleton;
 import edu.uw.lbaker7.localtravelapp.activitites.MapsActivity;
 
 public class PlaceListFragment extends Fragment {
@@ -75,7 +75,7 @@ public class PlaceListFragment extends Fragment {
         ListView placesListView = (ListView)rootView.findViewById(R.id.place_list);
         placesListView.setBackgroundColor(Color.WHITE);
         data = ((MapsActivity)getActivity()).getPlaceList();
-        imageLoader = PlacesRequestQueue.getInstance(getContext()).getImageLoader();
+        imageLoader = VolleySingleton.getInstance(getContext()).getImageLoader();
 
         adapter = new PlacesAdapter(getActivity(), data);
         placesListView.setAdapter(adapter);

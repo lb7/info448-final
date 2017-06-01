@@ -6,15 +6,12 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by Christa Joy Jaeger on 5/26/2017.
@@ -27,7 +24,6 @@ public class PlacesDialog extends DialogFragment {
     public static PlacesDialog newInstance(PlaceItem place) {
         Bundle args = new Bundle();
         PlacesDialog fragment = new PlacesDialog();
-        Log.v(TAG, place.placeName);
         args.putParcelable("Place", place);
         fragment.setArguments(args);
         return fragment;
@@ -73,13 +69,11 @@ public class PlacesDialog extends DialogFragment {
         root.findViewById(R.id.btn_add_place).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 itineraryCallback.onItineraryChoose(placeItem);
-
             }
         });
 
-        ImageLoader imageLoader = PlacesRequestQueue.getInstance(getContext()).getImageLoader();
+        ImageLoader imageLoader = VolleySingleton.getInstance(getContext()).getImageLoader();
 
         placeName.setText(placeItem.placeName);
 

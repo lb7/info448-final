@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,15 +47,10 @@ public class AddPlaceDialog extends DialogFragment {
     public static AddPlaceDialog newInstance(PlaceItem place) {
         Bundle args = new Bundle();
         AddPlaceDialog fragment = new AddPlaceDialog();
-        Log.v(TAG, place.placeName);
         args.putParcelable("Place", place);
         fragment.setArguments(args);
         return fragment;
     }
-
-
-
-
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

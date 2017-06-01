@@ -5,14 +5,11 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
 import edu.uw.lbaker7.localtravelapp.FirebaseController;
 import edu.uw.lbaker7.localtravelapp.R;
-
-import static android.content.ContentValues.TAG;
 
 public class ShareItineraryDialog extends DialogFragment {
 
@@ -29,7 +26,6 @@ public class ShareItineraryDialog extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         TextView emailView = (TextView) ((Dialog)dialog).findViewById(R.id.enterEmail);
                         String email = emailView.getText().toString();
-                        Log.v(TAG, "email entered: " + email);
 
                         Bundle args = getArguments();
                         if (args != null && !email.isEmpty()) {

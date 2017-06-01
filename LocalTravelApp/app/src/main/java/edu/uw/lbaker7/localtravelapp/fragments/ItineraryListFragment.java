@@ -139,8 +139,6 @@ public class ItineraryListFragment extends Fragment {
         itineraryListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                Log.v(TAG, "long click");
-
                 final ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
                 final ImageButton btnDelete = (ImageButton)view.findViewById(R.id.btn_delete_itinerary);
                 if (btnDelete.getVisibility() == View.INVISIBLE) {
@@ -166,7 +164,6 @@ public class ItineraryListFragment extends Fragment {
         itineraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.v(TAG, "on item click");
                 ItineraryListItem listItem = (ItineraryListItem)parent.getItemAtPosition(position);
                 itinerarySelectedCallback.onItinerarySelected(listItem);
             }
