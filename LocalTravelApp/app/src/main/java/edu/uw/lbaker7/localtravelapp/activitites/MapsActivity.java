@@ -514,12 +514,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         String types = "";
         if (filterStrings.size() > 0) {
-            for (int i = 0; i < filterStrings.size() - 1; i++) {
-                types += filterStrings.get(i).toLowerCase().replace(" ", "_") + "|";
+            types += filterStrings.get(0).toLowerCase().replace(" ", "_"); //first value
+            for (int i = 1; i < filterStrings.size(); i++) {
+                types += "|" + filterStrings.get(i).toLowerCase().replace(" ", "_");
             }
-            types += filterStrings.get(filterStrings.size() - 1).toLowerCase().replace(" ", "_");
-            Log.v(TAG, "types =" + types);
-
         }
         return types;
     }
