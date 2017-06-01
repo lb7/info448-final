@@ -521,4 +521,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return types;
     }
 
+    @Override
+    public void onBackPressed() {
+        if (filterFragment != null) {
+            controls.setVisibility(View.VISIBLE);
+            super.onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 }

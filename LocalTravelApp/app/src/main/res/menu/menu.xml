@@ -9,7 +9,7 @@
     <item
         android:id="@+id/itineraries"
         android:title="Itineraries"
-        app:showAsAction="never"        />
+        app:showAsAction="ifRoom"        />
     <item
         android:id="@+id/settings"
         android:title="Settings"
