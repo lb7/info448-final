@@ -71,11 +71,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private LatLng last;
-    private PlaceListFragment placeListFragment;
-    private FilterFragment filterFragment;
     private Menu menu;
     private ArrayList<PlaceItem>  stuff;
-
     private String[] placeTypes;
     private SupportMapFragment mapFragment;
     private View controls;
@@ -118,6 +115,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest.setFastestInterval(50000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
+
         placeTypes = getResources().getStringArray(R.array.place_types);
         createFilterArray();
 
@@ -134,6 +132,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         controls = findViewById(R.id.controls_container);
+
+        if (mapFragment.isVisible()) {
+            if (menu != null) {
+                MenuItem item = menu.findItem(R.id.mapList);
+                item.setVisible(true);
+            }
+        }
     }
 
 
@@ -227,8 +232,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-        @Override
+    }
+
+    @Override
     protected void onStart() {
         Log.v(TAG, "Started!!!");
 
@@ -405,7 +415,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void handleFilter(View v){
         createFilterArray();
         controls.setVisibility(View.INVISIBLE);
-        filterFragment = FilterFragment.newInstance();
+        FilterFragment filterFragment = FilterFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.map, filterFragment);
         ft.addToBackStack("Filter Fragment");
@@ -430,7 +440,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MapsActivity.this, ItineraryActivity.class));
                 return true; //handled
             case R.id.mapList:
-                placeListFragment = PlaceListFragment.newInstance();
+                PlaceListFragment placeListFragment = PlaceListFragment.newInstance();
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                 ft.replace(R.id.map, placeListFragment);
                 ft.addToBackStack(null);
@@ -482,8 +492,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.map, mapFragment);
         ft.commit();
-        MenuItem item = menu.findItem(R.id.mapList);
-        item.setVisible(true);
     }
 
     private void createFilterArray() {
@@ -505,14 +513,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 filterStrings.add(item.getType());
             }
         }
-
         String types = "";
-        for (int i = 0; i < filterStrings.size() - 1; i++) {
-            types += filterStrings.get(i).toLowerCase().replace(" ", "_") + "|";
-        }
-        types += filterStrings.get(filterStrings.size() - 1).toLowerCase().replace(" ", "_");
-        Log.v(TAG, "types =" + types);
+        if (filterStrings.size() > 0) {
+            for (int i = 0; i < filterStrings.size() - 1; i++) {
+                types += filterStrings.get(i).toLowerCase().replace(" ", "_") + "|";
+            }
+            types += filterStrings.get(filterStrings.size() - 1).toLowerCase().replace(" ", "_");
+            Log.v(TAG, "types =" + types);
 
+        }
         return types;
     }
 
