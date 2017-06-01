@@ -124,8 +124,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         createFilterArray();
 
         final EditText editText = (EditText) findViewById(R.id.search);
-        //String search = URLEncoder.encode(editText.getText().toString());
-        //Log.v(TAG, search);
 
         ImageButton searchButton = (ImageButton) findViewById(R.id.btn_search);
         searchButton.setOnClickListener(new View.OnClickListener() {
