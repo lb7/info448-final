@@ -14,6 +14,7 @@
         android:layout_marginLeft="0dp"
         android:layout_marginTop="8dp"
         android:text="Sign In"
+        android:backgroundTint="@color/btn_color"
         app:layout_constraintLeft_toLeftOf="@+id/passwordField"
         app:layout_constraintTop_toBottomOf="@+id/passwordField"/>
 

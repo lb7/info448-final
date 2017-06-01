@@ -5,18 +5,21 @@
     android:orientation="vertical"
     tools:context="edu.uw.lbaker7.localtravelapp.fragments.ItineraryDetailFragment">
 
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/itineraryName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Itinerary"
-            android:textSize="40sp"
-            android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/createMap"/>
+            android:textSize="30sp"
+            android:layout_weight="1"
+            android:textColor="@color/itinerary"
+            />
 
         <Button
             android:id="@+id/createMap"
@@ -24,8 +27,10 @@
             android:layout_height="wrap_content"
             android:text="Create Map"
             android:textSize="20sp"
-            android:layout_alignParentRight="true"/>
-    </RelativeLayout>
+            android:backgroundTint="@color/btn_color"
+            />
+
+    </LinearLayout>
 
 
     <ListView

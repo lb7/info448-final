@@ -6,20 +6,12 @@
     android:layout_height="match_parent"
     tools:context="edu.uw.lbaker7.localtravelapp.fragments.ItineraryListFragment">
 
-        <TextView
-            android:id="@+id/itinerary_list_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/title_itinerary_list"
-            android:textSize="30sp"
-            android:layout_margin="10dp"
-            />
 
         <ListView
             android:id="@+id/itinerary_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/itinerary_list_header">
+            >
         </ListView>
 
         <Button

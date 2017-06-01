@@ -71,11 +71,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private LatLng last;
-    private Menu menu;
     private ArrayList<PlaceItem>  stuff;
     private String[] placeTypes;
     private SupportMapFragment mapFragment;
     private View controls;
+    private FilterFragment filterFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,12 +135,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         controls = findViewById(R.id.controls_container);
 
-        if (mapFragment.isVisible()) {
-            if (menu != null) {
-                MenuItem item = menu.findItem(R.id.mapList);
-                item.setVisible(true);
-            }
-        }
     }
 
 
@@ -412,7 +406,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void handleFilter(View v){
         createFilterArray();
         controls.setVisibility(View.INVISIBLE);
-        FilterFragment filterFragment = FilterFragment.newInstance();
+        filterFragment = FilterFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.map, filterFragment);
         ft.addToBackStack("Filter Fragment");
@@ -423,8 +417,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
-        this.menu = menu;
-
         return true; //we've provided a menu!
     }
 
