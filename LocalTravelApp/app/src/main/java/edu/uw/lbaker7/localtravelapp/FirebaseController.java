@@ -18,6 +18,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
+/**
+ * Class of convenience methods to make interfacing with Firebase easier.
+ */
 public class FirebaseController implements FirebaseAuth.AuthStateListener {
 
     private static final String TAG = "FirebaseController";
@@ -30,6 +33,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
     private DatabaseReference mUsersReference;
     private FirebaseUser mUser;
 
+    /**
+     * Private constructor to defeat instantiation.
+     */
     private FirebaseController() {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
@@ -41,6 +47,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         mUser = mAuth.getCurrentUser();
     }
 
+    /**
+     * Gets the singleton instance of this class.
+     */
     public static FirebaseController getInstance() {
         if (mInstance == null) {
             mInstance = new FirebaseController();
@@ -57,6 +66,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         return mUser;
     }
 
+    /**
+     * Updates the user when the user logs in or out.
+     */
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
         mUser = firebaseAuth.getCurrentUser();
@@ -86,6 +98,9 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
         return null;
     }
 
+    /**
+     * Creates an account in firebase with the specified credentials. Listener will be called on completion
+     */
     private void createAccount(String email,
                                String password,
                                @NonNull OnCompleteListener<AuthResult> listener) {
@@ -104,7 +119,10 @@ public class FirebaseController implements FirebaseAuth.AuthStateListener {
                 });
     }
 
-    private void signIn(String email, String password, OnCompleteListener<AuthResult> listener) {
+    /**
+     * Signs the user into firebase with the specified credentials.
+     */
+    private void signIn(String email, String password, @NonNull OnCompleteListener<AuthResult> listener) {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(listener);
     }
 
