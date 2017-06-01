@@ -121,14 +121,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         placeTypes = getResources().getStringArray(R.array.place_types);
         createFilterArray();
 
-        EditText editText = (EditText) findViewById(R.id.search);
-        final String search = URLEncoder.encode(editText.getText().toString());
-        Log.v(TAG, search);
+        final EditText editText = (EditText) findViewById(R.id.search);
+        //String search = URLEncoder.encode(editText.getText().toString());
+        //Log.v(TAG, search);
 
         ImageButton searchButton = (ImageButton) findViewById(R.id.btn_search);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String search = URLEncoder.encode(editText.getText().toString());
+                Log.v(TAG, search);
                 handleSearch(search);
             }
         });
@@ -514,6 +516,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.v(TAG, "types =" + types);
 
         return types;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (filterFragment != null) {
+            controls.setVisibility(View.VISIBLE);
+            super.onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
     }
 
 }
