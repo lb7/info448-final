@@ -307,10 +307,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.v(TAG, "onLocationChanged types= " + types);
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MapsActivity.this);
-            String radius = sharedPreferences.getString(SettingsActivity.KEY_PREF_RADIUS, "");
+            String radius =  URLEncoder.encode(sharedPreferences.getString(SettingsActivity.KEY_PREF_RADIUS, ""));
             Log.v(TAG, "current radius" + radius);
 
-            String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+            String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius="+ radius+"&type="+types+"&key=" + getString(R.string.google_place_key);
             Log.v(TAG, "url on location changed = " + url);
             last = new LatLng(location.getLatitude(), location.getLongitude());
             if(stuff.size() == 0){
@@ -387,13 +387,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.v(TAG, "handle search types = " + types);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MapsActivity.this);
-        String radius = sharedPreferences.getString(SettingsActivity.KEY_PREF_RADIUS, "");
+        String radius =  URLEncoder.encode(sharedPreferences.getString(SettingsActivity.KEY_PREF_RADIUS, ""));
         Log.v(TAG, "current radius" + radius);
 
         if (search != null) {
-            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius=500&type="+types+"&key=" + getString(R.string.google_place_key);
+            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+last.latitude+","+last.longitude+"&keyword="+search+"&radius="+radius+"&type="+types+"&key=" + getString(R.string.google_place_key);
         } else {
-            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + last.latitude + "," + last.longitude + "&radius=500&type=" + types + "&key=" + getString(R.string.google_place_key);
+            url += "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + last.latitude + "," + last.longitude + "&radius="+radius+"&type=" + types + "&key=" + getString(R.string.google_place_key);
         }
         Log.v(TAG, "url on handle search = " + url);
 
