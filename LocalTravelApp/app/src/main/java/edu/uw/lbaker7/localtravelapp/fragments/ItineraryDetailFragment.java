@@ -27,7 +27,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -89,7 +88,6 @@ public class ItineraryDetailFragment extends Fragment {
 
         if (getArguments() != null) {
             itineraryKey = getArguments().getString(ITINERARY_ID_KEY);
-            Log.v(TAG, itineraryKey);
             String itineraryName = getArguments().getString(ITINERARY_NAME_KEY);
             TextView name = (TextView) rootView.findViewById(R.id.itineraryName);
             name.setText(itineraryName);
@@ -99,11 +97,8 @@ public class ItineraryDetailFragment extends Fragment {
             ArrayList<PlaceItem> arrayOfPlaceItems = new ArrayList<PlaceItem>();
 
             placeIds = getPlaceIds();
-            Log.v(TAG, "PlaceIds: " + placeIds.toString());
 
             adapter = new PlaceItemAdapter(getActivity(), arrayOfPlaceItems);
-
-            //getDummyObjects(); //dummy data
 
             ListView listView = (ListView) rootView.findViewById(R.id.placeItems);
             listView.setAdapter(adapter);
@@ -111,7 +106,6 @@ public class ItineraryDetailFragment extends Fragment {
             listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    Log.v(TAG, "showing delete button");
 
                     //show red x button
                     ImageButton deleteButton = (ImageButton) view.findViewById(R.id.deletePlaceButton);
@@ -172,22 +166,6 @@ public class ItineraryDetailFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public void getDummyObjects() {
-
-        //load dummy data until firebase fetching, api requesting, and json parsing are all fully implemented
-
-        PlaceItem itemOne = new PlaceItem("Famous House", new LatLng(22.71409, -147.2209), "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png", "22 Baker Street");
-        PlaceItem itemTwo = new PlaceItem("Jakob's Bar", new LatLng(22.74098, -150.2211), "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png", "51 Main Street");
-        PlaceItem itemThree = new PlaceItem("Honeycomb Factory", new LatLng(21.0987, -151.2288), "https://maps.gstatic.com/mapfiles/place_api/icons/generic_business-71.png", "509 Eaton Lane");
-
-        adapter.add(itemOne);
-        places.add(itemOne);
-        adapter.add(itemTwo);
-        places.add(itemTwo);
-        adapter.add(itemThree);
-        places.add(itemThree);
-    }
-
     public class PlaceItemAdapter extends ArrayAdapter<PlaceItem> {
 
         public PlaceItemAdapter(@NonNull Context context, @NonNull ArrayList<PlaceItem> placesList) {
@@ -216,11 +194,10 @@ public class ItineraryDetailFragment extends Fragment {
                         if (position < (adapter.getCount() - 1)) {
                             PlaceItem placeToMove = adapter.getItem(position);
                             adapter.remove(placeToMove);
+                            places.remove(placeToMove);
                             adapter.insert(placeToMove, position + 1);
+                            places.add(position + 1, placeToMove);
                         }
-
-                        //TODO - Update firebase here
-
                     }
                 });
 
@@ -230,11 +207,10 @@ public class ItineraryDetailFragment extends Fragment {
                         if (position > 0) {
                             PlaceItem placeToMove = adapter.getItem(position);
                             adapter.remove(placeToMove);
+                            places.remove(placeToMove);
                             adapter.insert(placeToMove, position - 1);
+                            places.add(position - 1, placeToMove);
                         }
-
-                        //TODO - Update firebase here
-
                     }
                 });
 
@@ -244,8 +220,6 @@ public class ItineraryDetailFragment extends Fragment {
                         PlaceItem placeToDelete = adapter.getItem(position);
                         adapter.remove(placeToDelete);
                         deleteButton.setVisibility(View.INVISIBLE);
-
-                        Log.v(TAG, "I'm deleting this objectID: " + placeIds.get(position));
 
                         firebaseController.deletePlaceFromItinerary(placeIds.get(position), itineraryKey);
 
@@ -269,17 +243,12 @@ public class ItineraryDetailFragment extends Fragment {
     }
 
     private void getPlaceFromId(String placeId) {
-        //https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM
 
         RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
 
         String urlString = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
         urlString += placeId;
         urlString += "&key=" + getString(R.string.google_place_key);
-
-        Log.v(TAG, "current url: " + urlString);
-
-        //RequestQueue queue = VolleySingleton.getInstance(getActivity()).getRequestQueue();
 
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, urlString, null,
                 new Response.Listener<JSONObject>() {
@@ -291,7 +260,7 @@ public class ItineraryDetailFragment extends Fragment {
                 }
             }, new Response.ErrorListener() {
                 public void onErrorResponse(VolleyError error) {
-                    Log.v(TAG, "Error occured.");
+                    Log.v(TAG, "A volley error occured.");
                 }
             });
             queue.add(jsonRequest);
@@ -304,12 +273,10 @@ public class ItineraryDetailFragment extends Fragment {
     private ArrayList<String> getPlaceIds() {
 
         final ArrayList<String> placeIdsToReturn = new ArrayList<String>();
-        Log.v(TAG, "getting places from firebase");
 
         firebaseController.getPlacesFromItinerary(itineraryKey, new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.v(TAG, dataSnapshot.toString());
                 getPlaceFromId(dataSnapshot.getKey());
                 placeIdsToReturn.add(dataSnapshot.getKey());
                 adapter.notifyDataSetChanged();
@@ -335,9 +302,19 @@ public class ItineraryDetailFragment extends Fragment {
                 adapter.notifyDataSetChanged();
             }
         });
-
-        Log.v(TAG, placeIdsToReturn.toString());
         return placeIdsToReturn;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        firebaseController = null;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        firebaseController = FirebaseController.getInstance();
     }
 
 }
