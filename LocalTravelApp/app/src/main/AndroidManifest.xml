@@ -48,8 +48,6 @@
             android:parentActivityName=".activitites.MapsActivity">
         </activity>
 
-        <activity android:name=".activitites.BaseActivity">
-        </activity>
     </application>
 
 </manifest>

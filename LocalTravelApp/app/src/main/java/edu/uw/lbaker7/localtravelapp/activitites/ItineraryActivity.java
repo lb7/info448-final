@@ -3,6 +3,7 @@ package edu.uw.lbaker7.localtravelapp.activitites;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
@@ -12,7 +13,7 @@ import edu.uw.lbaker7.localtravelapp.R;
 import edu.uw.lbaker7.localtravelapp.fragments.ItineraryDetailFragment;
 import edu.uw.lbaker7.localtravelapp.fragments.ItineraryListFragment;
 
-public class ItineraryActivity extends BaseActivity implements ItineraryListFragment.OnItinerarySelectedListener, ItineraryDetailFragment.OnCreateMapButtonSelectedListener {
+public class ItineraryActivity extends AppCompatActivity implements ItineraryListFragment.OnItinerarySelectedListener, ItineraryDetailFragment.OnCreateMapButtonSelectedListener {
     public static final String ACTION_DRAW = "edu.uw.lbaker7.localtravelapp.ActionDraw";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
