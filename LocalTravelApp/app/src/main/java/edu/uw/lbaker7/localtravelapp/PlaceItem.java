@@ -107,7 +107,7 @@ public class PlaceItem implements Parcelable {
 
             place = new PlaceItem(currentPlaceName, currentCoordinates, currentIcon, currentAddress, id,rating, priceLevel );
 
-            } catch (JSONException e) {
+        } catch (JSONException e) {
             Log.v(TAG, "Error parsing json", e);
             return null;
         }
