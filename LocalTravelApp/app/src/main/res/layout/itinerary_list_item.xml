@@ -11,16 +11,15 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:layout_marginTop="5dp"
-            android:textSize="20dp"
-            />
+            android:textSize="20dp"/>
 
         <TextView
             android:id="@+id/itinerary_date_created"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/itinerary_name"
             android:layout_marginLeft="10dp"
             android:layout_marginTop="5dp"
-            android:layout_below="@id/itinerary_name"
             />
 
         <ImageButton
@@ -32,5 +31,16 @@
             android:background="@android:drawable/ic_delete"
             android:visibility="invisible"
             />
+
+        <TextView
+            android:id="@+id/itinerary_shared_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/itinerary_date_created"
+            android:layout_alignTop="@+id/itinerary_date_created"
+            android:layout_marginStart="8dp"
+            android:layout_toEndOf="@+id/itinerary_date_created"
+            android:layout_toRightOf="@+id/itinerary_date_created"/>
+
 
 </RelativeLayout>

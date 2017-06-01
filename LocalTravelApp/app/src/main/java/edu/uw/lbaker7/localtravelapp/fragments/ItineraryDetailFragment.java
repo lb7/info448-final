@@ -124,7 +124,7 @@ public class ItineraryDetailFragment extends Fragment {
                 }
             });
         }
-            setHasOptionsMenu(true);
+        setHasOptionsMenu(true);
 
         Button createMapButton = (Button) rootView.findViewById(R.id.createMap);
         createMapButton.setOnClickListener(new View.OnClickListener() {
@@ -275,7 +275,7 @@ public class ItineraryDetailFragment extends Fragment {
 
         String urlString = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
         urlString += placeId;
-        urlString += "&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
+        urlString += "&key=" + getString(R.string.google_place_key);
 
         Log.v(TAG, "current url: " + urlString);
 
