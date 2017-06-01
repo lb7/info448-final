@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="pref_searchRadius"
+        android:title="Search Radius"
+        android:summary="Change the radius (in meters) around your location that you want to search"
+        android:inputType="number"
+        android:defaultValue="@string/defaultRadius" />
+</PreferenceScreen>
