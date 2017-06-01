@@ -331,7 +331,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 places = new ArrayList<PlaceItem>();
                 for (int i = 0; i < jsonResults.length(); i++) {
-
+                    //parsing through each
                     JSONObject resultItemObj = jsonResults.getJSONObject(i);
                     JSONObject location = resultItemObj.getJSONObject("geometry").getJSONObject("location");
                     LatLng ltlg = new LatLng(location.getDouble("lat"), location.getDouble("lng"));
