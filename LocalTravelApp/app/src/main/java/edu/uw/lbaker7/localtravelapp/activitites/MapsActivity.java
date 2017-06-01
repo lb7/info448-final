@@ -72,7 +72,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private LatLng last;
-    private ArrayList<PlaceItem>  stuff;
+    private ArrayList<PlaceItem>  drawDirections;
     private String[] placeTypes;
     private SupportMapFragment mapFragment;
     private View controls;
@@ -89,9 +89,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //seeing it the intent is to draw
         if (ItineraryActivity.ACTION_DRAW.equals(action) ) {
-            stuff = intent.getExtras().getParcelableArrayList("places");//getting list pf places for directions
+            places =intent.getExtras().getParcelableArrayList("places");
+            drawDirections = intent.getExtras().getParcelableArrayList("places");//getting list pf places for directions
         } else {
-            stuff= new ArrayList();//setting to empty array
+            drawDirections= new ArrayList();//setting to empty array
         }
         super.onCreate(savedInstanceState);//calling super constructor
         setContentView(R.layout.activity_maps);
@@ -156,18 +157,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (stuff.size() >0) {
+        if (drawDirections.size() >0) {
             String waypoint = "";
 
-            for (int i = 0; i< stuff.size()-1; i++) {
-                waypoint += "place_id:"+stuff.get(i).id +"|";
-                Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(i).coordinates).title(stuff.get(i).placeName).snippet("Click to see more!"));
-                marker.setTag(stuff.get(i));
+            for (int i = 0; i< drawDirections.size()-1; i++) {
+                waypoint += "place_id:"+drawDirections.get(i).id +"|";
+                Marker marker = mMap.addMarker(new MarkerOptions().position(drawDirections.get(i).coordinates).title(drawDirections.get(i).placeName).snippet("Click to see more!"));
+                marker.setTag(drawDirections.get(i));
             }
             findViewById(R.id.btn_clear_dir).setVisibility(View.VISIBLE);
-            Marker marker = mMap.addMarker(new MarkerOptions().position(stuff.get(stuff.size()-1).coordinates).title(stuff.get(stuff.size()-1).placeName).snippet("Click to see more!"));
-            marker.setTag(stuff.get(stuff.size()-1));
-            String url="https://maps.googleapis.com/maps/api/directions/json?mode=walking&origin=place_id:"+stuff.get(0).id+"&destination=place_id:"+stuff.get(stuff.size()-1).id+"&waypoints="+waypoint+"place_id:"+stuff.get(stuff.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
+            Marker marker = mMap.addMarker(new MarkerOptions().position(drawDirections.get(drawDirections.size()-1).coordinates).title(drawDirections.get(drawDirections.size()-1).placeName).snippet("Click to see more!"));
+            marker.setTag(drawDirections.get(drawDirections.size()-1));
+            String url="https://maps.googleapis.com/maps/api/directions/json?mode=walking&origin=place_id:"+drawDirections.get(0).id+"&destination=place_id:"+drawDirections.get(drawDirections.size()-1).id+"&waypoints="+waypoint+"place_id:"+drawDirections.get(drawDirections.size()-1).id+"&key=AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM";
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET,url, null, new Response.Listener<JSONObject>() {
                         //handling response
@@ -299,7 +300,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+location.getLatitude()+","+location.getLongitude()+"&radius="+ radius+"&type="+types+"&key=" + getString(R.string.google_place_key);
             last = new LatLng(location.getLatitude(), location.getLongitude());
-            if (stuff.size() == 0) {
+            if (drawDirections.size() == 0) {
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(last));
             }
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
@@ -323,10 +324,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void setRecent(JSONObject response) {
-        if(stuff.size() == 0) {
+        if(drawDirections.size() == 0) {
             mMap.clear();
             try {
                 JSONArray jsonResults = response.getJSONArray("results"); //response.results
+
                 places = new ArrayList<PlaceItem>();
                 for (int i = 0; i < jsonResults.length(); i++) {
 
@@ -361,7 +363,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public void handleSearch(String search) {
-        stuff = new ArrayList<>();
+        drawDirections = new ArrayList<>();
         findViewById(R.id.btn_clear_dir).setVisibility(View.INVISIBLE);
 
         String url = "";
@@ -397,6 +399,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void handleFilter(View v) {
         createFilterArray();
         controls.setVisibility(View.INVISIBLE);
+        findViewById(R.id.btn_clear_dir).setVisibility(View.INVISIBLE);//making the button invisible
         filterFragment = FilterFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.map, filterFragment);
@@ -426,6 +429,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ft.addToBackStack(null);
                 ft.commit();
                 controls.setVisibility(View.INVISIBLE);
+                findViewById(R.id.btn_clear_dir).setVisibility(View.INVISIBLE);
                 return true; //handled
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));

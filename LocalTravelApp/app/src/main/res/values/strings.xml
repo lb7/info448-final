@@ -8,6 +8,8 @@
     <string name="setDisplayName">Set display name</string>
     <string name="cancel">Cancel</string>
     <string name="defaultRadius">500</string>
+    <string name="google_place_key" >AIzaSyB8Ui2WT4bSCv5JLwFx2FAkR1wUrdUlgtM</string>
+
 
     <string-array name="place_types">
         <item>Amusement Park</item>
