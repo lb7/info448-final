@@ -103,8 +103,7 @@ public class ItineraryListFragment extends Fragment {
                 ItineraryListItem item = new ItineraryListItem(itineraryName, dateCreated);
                 item.setKey(itineraryKey);
 
-                Object sharedBy = dataSnapshot.child("ownerEmail").getValue();
-
+                Object sharedBy = dataSnapshot.child("ownerName").getValue();
 
                 if (!dataSnapshot.child("owner").getValue().toString().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) &&
                         sharedBy != null) {
@@ -265,8 +264,10 @@ public class ItineraryListFragment extends Fragment {
                             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
                             String dateString = sdf.format(date);
                             String newItineraryName = itineraryNameInput.getText().toString();
-                            ItineraryListItem newItem = new ItineraryListItem(newItineraryName, dateString);
-                            firebaseController.addItinerary(newItem);
+                            if (!newItineraryName.isEmpty()) {
+                                ItineraryListItem newItem = new ItineraryListItem(newItineraryName, dateString);
+                                firebaseController.addItinerary(newItem);
+                            }
                         }
                     })
                     .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {

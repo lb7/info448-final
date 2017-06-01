@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -60,6 +61,8 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     } else {
                                         Log.w(TAG, task.getException());
+                                        Toast.makeText(LoginActivity.this, "There was a problem logging in" +
+                                                ".", Toast.LENGTH_LONG).show();
                                     }
                                 }
                             });
