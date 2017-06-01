@@ -104,6 +104,8 @@ public class ItineraryListFragment extends Fragment {
                 item.setKey(itineraryKey);
 
                 Object sharedBy = dataSnapshot.child("ownerEmail").getValue();
+
+
                 if (!dataSnapshot.child("owner").getValue().toString().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) &&
                         sharedBy != null) {
                     item.sharedBy = sharedBy.toString();
@@ -220,6 +222,8 @@ public class ItineraryListFragment extends Fragment {
 
             if (item.sharedBy != null) {
                 holder.sharedBy.setText("| Shared by " + item.sharedBy);
+            } else {
+                holder.sharedBy.setText("");
             }
 
             return convertView;

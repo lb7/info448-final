@@ -8,7 +8,7 @@ public class ItineraryListItem {
     public String itineraryName;
     public String dateCreated;
     public String itineraryKey;
-    public String sharedBy;
+    public String sharedBy = null;
 
     public HashMap<String, Boolean> places;
 
